@@ -118,3 +118,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* index.css */
+body.theme-dark {
+  @apply bg-gray-900 text-white;
+}
+body.theme-nature {
+  @apply bg-gradient-to-b from-green-200 via-lime-100 to-blue-100 text-emerald-800;
+}
