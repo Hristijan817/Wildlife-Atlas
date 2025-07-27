@@ -29,67 +29,95 @@ export default function Home() {
 
       {/* Hero Section */}
       <section
-        className="h-screen bg-cover bg-center bg-no-repeat relative z-10"
-        style={{ backgroundImage: "url('/src/assets/images/hero-nature.png')" }}
-      >
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col justify-center items-center text-center text-white px-6">
-          <AnimateIn delay={0.1}>
-            <h1 className="text-5xl font-extrabold mb-4 drop-shadow-xl tracking-tight">
-              Добредојдовте во Светот на Животните
-            </h1>
-          </AnimateIn>
-          <AnimateIn delay={0.2}>
-            <p className="text-xl max-w-2xl text-gray-200 drop-shadow-md">
-              Истражи. Научи. Зачуди се. Откриј ја дивината со еден клик.
-            </p>
-          </AnimateIn>
-          <AnimateIn delay={0.3}>
-            <Button className="mt-6 text-lg px-6 py-4 flex items-center gap-2" onClick={() => navigate("/kopno")}>
-              <PawPrint className="w-5 h-5" /> Започни со истражување
-            </Button>
-          </AnimateIn>
-        </div>
-      </section>
+  className="h-screen bg-cover bg-center bg-no-repeat relative z-10"
+  style={{ backgroundImage: "url('/src/assets/images/hero-nature.png')" }}
+>
+  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center text-center text-white px-6 pt-[10vh] md:pt-[8vh]">
+    {/* Headline & Subtext */}
+    <AnimateIn delay={0.1}>
+      <h1 className="text-5xl font-extrabold mb-3 drop-shadow-xl tracking-tight">
+        Добредојдовте во Светот на Животните
+      </h1>
+    </AnimateIn>
+    <AnimateIn delay={0.2}>
+      <p className="text-xl max-w-2xl text-gray-200 drop-shadow-md mb-6">
+        Истражи. Научи. Зачуди се. Откриј ја дивината со еден клик.
+      </p>
+    </AnimateIn>
+
+    {/* Call to Action */}
+    <AnimateIn delay={0.3}>
+      <Button className="text-lg px-6 py-4 flex items-center gap-2 mb-8" onClick={() => navigate("/kopno")}>
+        <PawPrint className="w-5 h-5" /> Започни со истражување
+      </Button>
+    </AnimateIn>
+
+    {/* Centered Hero Icon/Image */}
+    <AnimateIn delay={0.4}>
+      <img
+        src="/src/assets/images/planet.png"
+        alt="Hero Illustration"
+        className="w-68 md:w-86 lg:w-98 mx-auto drop-shadow-lg"
+      />
+    </AnimateIn>
+  </div>
+</section>
+
 
       {/* Habitat Cards */}
-      <main className="max-w-6xl mx-auto px-4 py-20 grid gap-8 md:grid-cols-3 z-10 relative">
-        {[
-          {
-            title: "Копно",
-            path: "/kopno",
-            desc: "Животни од шумите, пустините и планините.",
-            img: "land.png",
-            ring: "ring-green-400",
-          },
-          {
-            title: "Воздух",
-            path: "/vozduh",
-            desc: "Птици и летачи во сините небеса.",
-            img: "air.png",
-            ring: "ring-sky-400",
-          },
-          {
-            title: "Вода",
-            path: "/voda",
-            desc: "Морски и речни суштества.",
-            img: "water.png",
-            ring: "ring-blue-400",
-          },
-        ].map((habitat, i) => (
-          <AnimateIn key={i} delay={i * 0.2}>
-            <Card
-              className={`hover:scale-[1.03] transition-all duration-300 cursor-pointer ring-2 ${habitat.ring} bg-white/60 backdrop-blur-md shadow-md`}
-              onClick={() => navigate(habitat.path)}
-            >
-              <CardContent className="p-6 text-center">
-                <img src={`/src/assets/images/${habitat.img}`} alt={habitat.title} className="w-20 mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold">{habitat.title}</h2>
-                <p className="text-gray-600">{habitat.desc}</p>
-              </CardContent>
-            </Card>
-          </AnimateIn>
-        ))}
-      </main>
+  {/* Decorative Background Images */}
+ <section className="relative z-10 py-24">
+  {/* 3-Column Background Images Behind Cards */}
+  <div className="absolute inset-0 flex w-full h-full -z-10">
+    <div className="w-1/3 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/bg-land.jpg')" }}></div>
+    <div className="w-1/3 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/bg-air.jpg')" }}></div>
+    <div className="w-1/3 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/bg-water.jpg')" }}></div>
+  </div>
+
+  {/* Foreground Cards in a 3-Column Grid */}
+  <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 px-4">
+    {[
+      {
+        title: "Копно",
+        path: "/kopno",
+        desc: "Животни од шумите, пустините и планините.",
+        img: "land.png",
+        ring: "ring-green-400",
+      },
+      {
+        title: "Воздух",
+        path: "/vozduh",
+        desc: "Птици и летачи во сините небеса.",
+        img: "air.png",
+        ring: "ring-sky-400",
+      },
+      {
+        title: "Вода",
+        path: "/voda",
+        desc: "Морски и речни суштества.",
+        img: "water.png",
+        ring: "ring-blue-400",
+      },
+    ].map((habitat, i) => (
+      <AnimateIn key={i} delay={i * 0.2}>
+        <div className="flex justify-center">
+          <Card
+            className={`w-full max-w-[300px] text-center hover:scale-[1.03] transition-all duration-300 cursor-pointer ring-2 ${habitat.ring} bg-white/50 backdrop-blur-sm shadow-md`}
+            onClick={() => navigate(habitat.path)}
+          >
+            <CardContent className="p-6">
+              <img src={`/src/assets/images/${habitat.img}`} alt={habitat.title} className="w-20 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold">{habitat.title}</h2>
+              <p className="text-gray-700">{habitat.desc}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </AnimateIn>
+    ))}
+  </div>
+</section>
+
+
 
       {/* Featured Animal Section */}
       <section className="bg-white/90 py-20 text-center px-4">
