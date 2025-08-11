@@ -14,6 +14,7 @@ export default function NavBar() {
     { name: "Вода", to: "/voda" },
     { name: "Квиз", to: "/quiz" },
     { name: "Мапа", to: "/map" },
+    { name: "Админ", to: "/admin/animals" },
   ];
 
   return (
