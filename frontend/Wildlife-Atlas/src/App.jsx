@@ -5,7 +5,8 @@ import Home from "./pages/Home";
 import LandAnimals from "./pages/LandAnimals";
 import AirAnimals from "./pages/AirAnimals";
 import WaterAnimals from "./pages/WaterAnimals";
-import AdminAnimals from "@/pages/AdminAnimals";
+import AdminDashboard from "./pages/AdminDashboard";
+import LoginPage from "./pages/LoginPage";
 const App = () => {
   return (
     <Router>
@@ -14,7 +15,8 @@ const App = () => {
         <Route path="/kopno" element={<LandAnimals />} />
         <Route path="/vozduh" element={<AirAnimals />} />
         <Route path="/voda" element={<WaterAnimals />} />
-        <Route path="/admin/animals" element={<AdminAnimals />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </Router>
   )

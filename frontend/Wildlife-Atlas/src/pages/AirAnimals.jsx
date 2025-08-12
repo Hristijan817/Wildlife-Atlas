@@ -200,31 +200,52 @@ export default function AirAnimals() {
         <div className="absolute inset-0 bg-sky-900/5" />
         <div className="relative max-w-6xl mx-auto px-4 py-12">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {placeholders.map((p, idx) => (
-              <AnimateIn key={p.id} delay={(idx % 6) * 0.06}>
-                <div className="relative rounded-xl group">
-                  <div className="absolute -inset-[1px] rounded-xl opacity-0 group-hover:opacity-70 bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-200 blur-sm transition-opacity duration-300 pointer-events-none" />
-                  <Card className="relative z-10 bg-white/65 backdrop-blur-md border border-white/20 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-xl">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold">{p.title}</p>
-                        <span className="text-xs text-sky-700 bg-sky-100 rounded-full px-2 py-[2px]">
-                          воздух
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">Ова е пример-картичка за изглед.</p>
-                      <div className="mt-3 flex items-center justify-between">
-                        <Button size="sm" variant="outline">Детали</Button>
-                        <Button size="sm" variant="ghost" className="opacity-80 hover:opacity-100">
-                          <Feather className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
+  {list
+    .filter(a => a.featured !== false) // show only featured by default
+    .map((p, idx) => (
+      <AnimateIn key={p._id || p.name} delay={(idx % 6) * 0.06}>
+        <div className="relative rounded-xl group">
+          <div className="absolute -inset-[1px] rounded-xl opacity-0 group-hover:opacity-70 bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-200 blur-sm transition-opacity duration-300 pointer-events-none" />
+          <Card
+            className="relative z-10 bg-white/65 backdrop-blur-md border border-white/20 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-xl"
+            style={
+              p.cardImage
+                ? { backgroundImage: `url('${p.cardImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
+                : undefined
+            }
+          >
+            <CardContent className="p-4" style={p.cardImage ? { background: "linear-gradient( to top, rgba(255,255,255,0.85), rgba(255,255,255,0.55) )" } : undefined}>
+              <div className="flex items-center justify-between">
+                <p className="font-semibold">{p.name}</p>
+                <span className="text-xs text-sky-700 bg-sky-100 rounded-full px-2 py-[2px]">воздух</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {p.summary || (p.family ? `Фамилија: ${p.family}` : "Ова е пример-картичка за изглед.")}
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (p._id?.toString().startsWith("placeholder-")) return;
+                    // navigate to detail if you already wired it
+                    window.location.href = `/animals/vozduh/${p._id}`;
+                  }}
+                  disabled={p._id?.toString().startsWith("placeholder-")}
+                >
+                  Детали
+                </Button>
+                <Button size="sm" variant="ghost" className="opacity-80 hover:opacity-100">
+                  {/* your icon */}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AnimateIn>
+    ))}
+</div>
+
         </div>
       </section>
 
