@@ -11,6 +11,7 @@ import AirAnimals from "./pages/AirAnimals";
 import WaterAnimals from "./pages/WaterAnimals";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoginPage from "./pages/LoginPage";
+import AddAnimal from "./pages/AddAnimal";
 
 const App = () => {
   return (
@@ -33,6 +34,11 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="/admin/add" element={
+  <ProtectedRoute>
+    <AddAnimal />
+  </ProtectedRoute>
+} />
             <Route path="/login" element={<LoginPage />} />
           </Routes>
         </AuthProvider>

@@ -19,7 +19,8 @@ export default function NavBar() {
     { name: "Вода", to: "/voda" },
     { name: "Квиз", to: "/quiz" },
     { name: "Мапа", to: "/map" },
-    ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin/animals" }] : []),
+    { name: "Најави се", to: "/login" },
+    ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin" }] : []),
   ];
 
   const onLogout = () => {
