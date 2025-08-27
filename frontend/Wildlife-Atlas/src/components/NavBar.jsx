@@ -1,10 +1,15 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/auth";
+import { Button } from "@/components/ui/button";
 
 export default function NavBar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const isActive = (path) => location.pathname === path;
 
   const links = [
@@ -14,14 +19,22 @@ export default function NavBar() {
     { name: "Вода", to: "/voda" },
     { name: "Квиз", to: "/quiz" },
     { name: "Мапа", to: "/map" },
-    { name: "Админ", to: "/admin/animals" },
+    ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin/animals" }] : []),
   ];
+
+  const onLogout = () => {
+    logout();
+    navigate("/"); // back to home after logout
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 shadow-sm border-b border-gray-200">
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold text-green-600 tracking-tight hover:text-green-700 transition">
+        <Link
+          to="/"
+          className="text-xl font-bold text-green-600 tracking-tight hover:text-green-700 transition"
+        >
           🌿 Animal Explorer
         </Link>
 
@@ -42,9 +55,22 @@ export default function NavBar() {
           ))}
 
           {/* Theme Toggle */}
-          <div className="ml-4">
+          <div className="ml-2">
             <ThemeToggle />
           </div>
+
+          {/* Admin-only Logout */}
+          {user?.role === "admin" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-2"
+              onClick={onLogout}
+              title="Одјави се"
+            >
+              Одјави се
+            </Button>
+          )}
         </nav>
 
         {/* Mobile Nav */}
@@ -70,6 +96,18 @@ export default function NavBar() {
                     {link.name}
                   </Link>
                 ))}
+
+                {/* Admin-only Logout (mobile) */}
+                {user?.role === "admin" && (
+                  <Button
+                    variant="outline"
+                    className="mt-2 w-full"
+                    onClick={onLogout}
+                    title="Одјави се"
+                  >
+                    Одјави се
+                  </Button>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

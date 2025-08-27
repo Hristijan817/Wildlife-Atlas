@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, PawPrint, Filter, RefreshCcw, HelpCircle, Scale3D } from "lucide-react";
 import AnimateIn from "@/components/AnimateIn";
 import ParticleBackground from "@/components/ParticleBackground";
-import NavBar from "@/components/NavBar";
+
 
 export default function Home() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen font-sans overflow-x-hidden bg-gradient-to-b from-green-50 to-blue-100 text-gray-800">
       {/* Particle background */}
-       <NavBar />
+       
       <ParticleBackground />
 
       {/* Floating animal icons */}
