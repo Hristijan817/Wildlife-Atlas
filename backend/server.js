@@ -41,11 +41,12 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 // routes
 app.use("/api/users", userRoutes);
 app.use("/api/animals", animalRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // errors
 app.use(notFound);
 app.use(errorHandler);
-app.use("/uploads", express.static("uploads"));
+
 
 // start
 const PORT = process.env.PORT || 5000;

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApi } from "@/services/api";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const HABITATS = [
   { value: "", label: "Habitat" },
   { value: "kopno", label: "Kopno" },
@@ -18,6 +20,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // form fields (no cardImage URL here anymore)
   const [form, setForm] = useState({
     name: "",
     type: "",
@@ -26,10 +29,13 @@ export default function AdminDashboard() {
     lifespan: "",
     diet: "",
     description: "",
-    cardImage: "",
     summary: "",
     featured: true,
   });
+
+  // image file state + preview
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
 
   async function fetchAnimals() {
     try {
@@ -54,17 +60,23 @@ export default function AdminDashboard() {
     setForm((prev) => ({ ...prev, habitat: e.target.value }));
   }
 
-function validate() {
-  if (!form.name.trim()) return "Name is required.";
-  if (!["kopno", "voda", "vozduh"].includes(form.habitat)) {
-    return "Habitat must be one of: kopno, voda, vozduh.";
+  function onChangeFile(e) {
+    const f = e.target.files?.[0] || null;
+    setFile(f);
+    if (f) {
+      const url = URL.createObjectURL(f);
+      setPreview(url);
+    } else {
+      setPreview("");
+    }
   }
-  return "";
 
-    // These are commonly required by APIs — make them required client-side
-    if (!form.diet.trim()) return "Diet is required.";
-    if (!form.summary.trim()) return "Summary is required.";
-    if (!form.cardImage.trim()) return "Card image URL is required.";
+  function validate() {
+    if (!form.name.trim()) return "Name is required.";
+    if (!["kopno", "voda", "vozduh"].includes(form.habitat)) {
+      return "Habitat must be one of: kopno, voda, vozduh.";
+    }
+    // Image is optional on client; backend accepts without file.
     return "";
   }
 
@@ -80,33 +92,27 @@ function validate() {
 
     setLoading(true);
     try {
-      // Build a clean payload the backend will accept
-      const body = {
-        name: form.name.trim(),
-        habitat: form.habitat,
-        type: form.type.trim() || "",
-        family: form.family.trim() || "",
-        lifespan: form.lifespan.trim() || "",
-        diet: form.diet.trim(),
-        description: form.description.trim() || "",
-        cardImage: form.cardImage.trim(),
-        summary: form.summary.trim(),
-        featured: Boolean(form.featured),
+      // Build FormData for Multer (IMPORTANT: do not set Content-Type header yourself)
+      const fd = new FormData();
+      fd.append("name", form.name.trim());
+      fd.append("habitat", form.habitat);
+      if (form.type) fd.append("type", form.type.trim());
+      if (form.family) fd.append("family", form.family.trim());
+      if (form.lifespan) fd.append("lifespan", form.lifespan.trim());
+      if (form.diet) fd.append("diet", form.diet.trim());
+      if (form.description) fd.append("description", form.description.trim());
+      if (form.summary) fd.append("summary", form.summary.trim());
+      fd.append("featured", String(!!form.featured));
+      if (file) fd.append("cardImage", file); // <-- field name for Multer
 
-        // If your backend uses different names, these aliases help:
-        image: form.cardImage.trim(),            // alias for cardImage
-        shortDescription: form.summary.trim(),    // alias for summary
-        animalType: form.type.trim() || "",       // alias for type
-      };
-
-      const res = await post("/api/animals", body);
+      const res = await post("/api/animals", fd);
       if (!res.ok) {
-        // show server-provided validation message
         const msg = await safeMessage(res);
         throw new Error(msg || `Create failed (${res.status})`);
       }
 
       await fetchAnimals();
+      // reset form
       setForm({
         name: "",
         type: "",
@@ -115,10 +121,11 @@ function validate() {
         lifespan: "",
         diet: "",
         description: "",
-        cardImage: "",
         summary: "",
         featured: true,
       });
+      setFile(null);
+      setPreview("");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -177,42 +184,36 @@ function validate() {
               ))}
             </select>
 
-            <Input name="type" value={form.type} onChange={onChange} placeholder="Type" />
+            <Input name="type" value={form.type} onChange={onChange} placeholder="Type (optional)" />
+            <Input name="family" value={form.family} onChange={onChange} placeholder="Family (optional)" />
+            <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan (optional)" />
+            <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet (optional)" />
+            <Input name="description" value={form.description} onChange={onChange} placeholder="Description (optional)" />
 
-            <Input name="family" value={form.family} onChange={onChange} placeholder="Family" />
-            <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan" />
-
-            <Input
-              name="diet"
-              value={form.diet}
-              onChange={onChange}
-              placeholder="Diet"
-              required
-            />
-
-            <Input
-              name="description"
-              value={form.description}
-              onChange={onChange}
-              placeholder="Description"
-            />
-
-            <Input
-              name="cardImage"
-              value={form.cardImage}
-              onChange={onChange}
-              placeholder="Card image (URL)"
-              className="md:col-span-3"
-              required
-            />
+            {/* Image file input + preview (replaces URL field) */}
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-sm font-medium">Card image (file)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onChangeFile}
+                className="block w-full rounded-md border p-2 text-sm"
+              />
+              {preview && (
+                <img
+                  src={preview}
+                  alt="preview"
+                  className="mt-2 h-40 w-auto rounded-md border object-cover"
+                />
+              )}
+            </div>
 
             <textarea
               name="summary"
               value={form.summary}
               onChange={onChange}
-              placeholder="Short summary for card (1–2 lines)"
+              placeholder="Short summary for card (1–2 lines) (optional)"
               className="min-h-[90px] rounded-md border p-2 text-sm md:col-span-3"
-              required
             />
 
             <label className="flex items-center gap-2 text-sm md:col-span-3">
@@ -230,24 +231,15 @@ function validate() {
                 {loading ? "Saving…" : "Add Animal"}
               </Button>
 
-              {/* Debug payload button (remove after testing) */}
+              {/* Debug payload (remove after testing) */}
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  const debug = {
-                    name: form.name.trim(),
-                    habitat: form.habitat,
-                    type: form.type.trim() || "",
-                    family: form.family.trim() || "",
-                    lifespan: form.lifespan.trim() || "",
-                    diet: form.diet.trim(),
-                    description: form.description.trim() || "",
-                    cardImage: form.cardImage.trim(),
-                    summary: form.summary.trim(),
-                    featured: Boolean(form.featured),
-                  };
-                  console.log("Will POST /api/animals", debug);
+                  console.log("Will POST /api/animals (FormData):", {
+                    ...form,
+                    fileSelected: !!file,
+                  });
                 }}
               >
                 Debug payload
@@ -271,39 +263,46 @@ function validate() {
             </tr>
           </thead>
           <tbody>
-            {list.map((a) => (
-              <tr key={a._id} className="border-b hover:bg-black/5">
-                <td className="p-2">
-                  {a.cardImage ? (
-                    <img
-                      src={a.cardImage}
-                      alt=""
-                      className="w-16 h-12 object-cover rounded border"
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400">—</span>
-                  )}
-                </td>
-                <td className="p-2 font-medium">
-                  <div className="flex flex-col">
-                    <span>{a.name}</span>
-                    {a.summary ? (
-                      <span className="text-xs text-gray-500 line-clamp-2">
-                        {a.summary}
-                      </span>
-                    ) : null}
-                  </div>
-                </td>
-                <td className="p-2">{a.habitat}</td>
-                <td className="p-2">{a.diet || "—"}</td>
-                <td className="p-2">{a.featured === false ? "No" : "Yes"}</td>
-                <td className="p-2">
-                  <Button variant="destructive" onClick={() => onDelete(a._id)}>
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {list.map((a) => {
+              // Support both absolute URLs and backend-served /uploads/ paths
+              const imgSrc = a.cardImage
+                ? (a.cardImage.startsWith("http") ? a.cardImage : `${API}${a.cardImage}`)
+                : null;
+
+              return (
+                <tr key={a._id} className="border-b hover:bg-black/5">
+                  <td className="p-2">
+                    {imgSrc ? (
+                      <img
+                        src={imgSrc}
+                        alt=""
+                        className="w-16 h-12 object-cover rounded border"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="p-2 font-medium">
+                    <div className="flex flex-col">
+                      <span>{a.name}</span>
+                      {a.summary ? (
+                        <span className="text-xs text-gray-500 line-clamp-2">
+                          {a.summary}
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td className="p-2">{a.habitat}</td>
+                  <td className="p-2">{a.diet || "—"}</td>
+                  <td className="p-2">{a.featured === false ? "No" : "Yes"}</td>
+                  <td className="p-2">
+                    <Button variant="destructive" onClick={() => onDelete(a._id)}>
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
             {list.length === 0 && (
               <tr>
                 <td className="p-4 text-gray-500" colSpan={6}>

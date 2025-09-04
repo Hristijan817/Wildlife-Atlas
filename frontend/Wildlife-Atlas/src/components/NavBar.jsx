@@ -19,7 +19,7 @@ export default function NavBar() {
     { name: "Вода", to: "/voda" },
     { name: "Квиз", to: "/quiz" },
     { name: "Мапа", to: "/map" },
-    { name: "Најави се", to: "/login" },
+    ...(!user ? [{ name: "Најави се", to: "/login" }] : []),
     ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin" }] : []),
   ];
 
