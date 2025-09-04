@@ -1,11 +1,35 @@
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useApi } from "@/services/api";
-import { Link } from "react-router-dom";
+
+const HABITATS = [
+  { value: "", label: "Habitat" },
+  { value: "kopno", label: "Kopno" },
+  { value: "voda", label: "Voda" },
+  { value: "vozduh", label: "Vozduh" },
+];
 
 export default function AdminDashboard() {
-  const { get, del } = useApi();
+  const { get, post, del } = useApi();
+
   const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    type: "",
+    habitat: "",
+    family: "",
+    lifespan: "",
+    diet: "",
+    description: "",
+    cardImage: "",
+    summary: "",
+    featured: true,
+  });
 
   async function fetchAnimals() {
     try {
@@ -21,11 +45,95 @@ export default function AdminDashboard() {
     fetchAnimals();
   }, []);
 
+  function onChange(e) {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  }
+
+  function onChangeHabitat(e) {
+    setForm((prev) => ({ ...prev, habitat: e.target.value }));
+  }
+
+function validate() {
+  if (!form.name.trim()) return "Name is required.";
+  if (!["kopno", "voda", "vozduh"].includes(form.habitat)) {
+    return "Habitat must be one of: kopno, voda, vozduh.";
+  }
+  return "";
+
+    // These are commonly required by APIs — make them required client-side
+    if (!form.diet.trim()) return "Diet is required.";
+    if (!form.summary.trim()) return "Summary is required.";
+    if (!form.cardImage.trim()) return "Card image URL is required.";
+    return "";
+  }
+
+  async function onCreate(e) {
+    e.preventDefault();
+    setError("");
+
+    const v = validate();
+    if (v) {
+      setError(v);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Build a clean payload the backend will accept
+      const body = {
+        name: form.name.trim(),
+        habitat: form.habitat,
+        type: form.type.trim() || "",
+        family: form.family.trim() || "",
+        lifespan: form.lifespan.trim() || "",
+        diet: form.diet.trim(),
+        description: form.description.trim() || "",
+        cardImage: form.cardImage.trim(),
+        summary: form.summary.trim(),
+        featured: Boolean(form.featured),
+
+        // If your backend uses different names, these aliases help:
+        image: form.cardImage.trim(),            // alias for cardImage
+        shortDescription: form.summary.trim(),    // alias for summary
+        animalType: form.type.trim() || "",       // alias for type
+      };
+
+      const res = await post("/api/animals", body);
+      if (!res.ok) {
+        // show server-provided validation message
+        const msg = await safeMessage(res);
+        throw new Error(msg || `Create failed (${res.status})`);
+      }
+
+      await fetchAnimals();
+      setForm({
+        name: "",
+        type: "",
+        habitat: "",
+        family: "",
+        lifespan: "",
+        diet: "",
+        description: "",
+        cardImage: "",
+        summary: "",
+        featured: true,
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function onDelete(id) {
     if (!confirm("Delete this animal?")) return;
     try {
       const res = await del(`/api/animals/${id}`);
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) {
+        const msg = await safeMessage(res);
+        throw new Error(msg || "Delete failed");
+      }
       setList((prev) => prev.filter((x) => x._id !== id));
     } catch (err) {
       alert(err.message);
@@ -35,12 +143,119 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admin • Animals</h1>
-        {/* ✅ Link to AddAnimal page */}
-        <Link to="/admin/add">
-          <Button>Add Animal</Button>
-        </Link>
+        <h1 className="text-2xl font-semibold">Add New Animal</h1>
       </div>
+
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          {error && (
+            <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Input
+              name="name"
+              value={form.name}
+              onChange={onChange}
+              placeholder="Name"
+              required
+            />
+
+            <select
+              name="habitat"
+              value={form.habitat}
+              onChange={onChangeHabitat}
+              className="h-10 rounded-md border px-3 text-sm"
+              required
+            >
+              {HABITATS.map((h) => (
+                <option key={h.value} value={h.value} disabled={h.value === ""}>
+                  {h.label}
+                </option>
+              ))}
+            </select>
+
+            <Input name="type" value={form.type} onChange={onChange} placeholder="Type" />
+
+            <Input name="family" value={form.family} onChange={onChange} placeholder="Family" />
+            <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan" />
+
+            <Input
+              name="diet"
+              value={form.diet}
+              onChange={onChange}
+              placeholder="Diet"
+              required
+            />
+
+            <Input
+              name="description"
+              value={form.description}
+              onChange={onChange}
+              placeholder="Description"
+            />
+
+            <Input
+              name="cardImage"
+              value={form.cardImage}
+              onChange={onChange}
+              placeholder="Card image (URL)"
+              className="md:col-span-3"
+              required
+            />
+
+            <textarea
+              name="summary"
+              value={form.summary}
+              onChange={onChange}
+              placeholder="Short summary for card (1–2 lines)"
+              className="min-h-[90px] rounded-md border p-2 text-sm md:col-span-3"
+              required
+            />
+
+            <label className="flex items-center gap-2 text-sm md:col-span-3">
+              <input
+                type="checkbox"
+                name="featured"
+                checked={form.featured}
+                onChange={onChange}
+              />
+              Show on habitat cards (featured)
+            </label>
+
+            <div className="md:col-span-3 flex items-center gap-2">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving…" : "Add Animal"}
+              </Button>
+
+              {/* Debug payload button (remove after testing) */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const debug = {
+                    name: form.name.trim(),
+                    habitat: form.habitat,
+                    type: form.type.trim() || "",
+                    family: form.family.trim() || "",
+                    lifespan: form.lifespan.trim() || "",
+                    diet: form.diet.trim(),
+                    description: form.description.trim() || "",
+                    cardImage: form.cardImage.trim(),
+                    summary: form.summary.trim(),
+                    featured: Boolean(form.featured),
+                  };
+                  console.log("Will POST /api/animals", debug);
+                }}
+              >
+                Debug payload
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -69,9 +284,18 @@ export default function AdminDashboard() {
                     <span className="text-xs text-gray-400">—</span>
                   )}
                 </td>
-                <td className="p-2 font-medium">{a.name}</td>
+                <td className="p-2 font-medium">
+                  <div className="flex flex-col">
+                    <span>{a.name}</span>
+                    {a.summary ? (
+                      <span className="text-xs text-gray-500 line-clamp-2">
+                        {a.summary}
+                      </span>
+                    ) : null}
+                  </div>
+                </td>
                 <td className="p-2">{a.habitat}</td>
-                <td className="p-2">{a.diet}</td>
+                <td className="p-2">{a.diet || "—"}</td>
                 <td className="p-2">{a.featured === false ? "No" : "Yes"}</td>
                 <td className="p-2">
                   <Button variant="destructive" onClick={() => onDelete(a._id)}>
@@ -92,4 +316,13 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
+}
+
+async function safeMessage(res) {
+  try {
+    const j = await res.json();
+    return j?.message || j?.error;
+  } catch {
+    return await res.text();
+  }
 }

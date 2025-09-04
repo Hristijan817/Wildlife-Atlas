@@ -45,6 +45,7 @@ app.use("/api/animals", animalRoutes);
 // errors
 app.use(notFound);
 app.use(errorHandler);
+app.use("/uploads", express.static("uploads"));
 
 // start
 const PORT = process.env.PORT || 5000;

@@ -1,268 +1,96 @@
-// src/pages/AirAnimals.js
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import AnimateIn from "@/components/AnimateIn";
-
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
-import { Feather, Search, Cloud, Wind, Sun } from "lucide-react";
-import NavBar from "@/components/NavBar";
-
-function FancySearch({ value, onChange, onClear, inputRef }) {
-  return (
-    <div ref={inputRef} className="group relative w-full">
-      <div className="absolute -inset-[1px] rounded-xl opacity-70 bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-200 blur-sm group-focus-within:opacity-100 transition" />
-      <div className="relative z-[1] rounded-xl bg-white/70 backdrop-blur-md border border-white/60 shadow-sm">
-        <div className="flex items-center px-3">
-          <Search className="w-4 h-4 text-sky-700/70 mr-2" />
-          <input
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="Пребарај по име (пр. Сокол, Орел, Папагал)"
-            className="flex-1 bg-transparent h-10 outline-none text-sm placeholder:text-gray-400"
-          />
-          {value?.length > 0 && (
-            <button
-              type="button"
-              onClick={onClear}
-              className="ml-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-white/60 transition"
-              aria-label="Исчисти"
-            >
-              Исчисти
-            </button>
-          )}
-          <span className="ml-2 hidden md:inline-flex items-center gap-1 text-[11px] text-gray-500">
-            <kbd className="rounded border bg-white/70 px-1">/</kbd> за фокус
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function AirAnimals() {
-  const placeholders = Array.from({ length: 9 }).map((_, i) => ({
-    id: i,
-    title: ["Сокол", "Орел", "Папагал", "Галеб", "Фламинго", "Јастреб", "Пингвин", "Лебед", "Колибри"][i % 9],
-  }));
+  const [animals, setAnimals] = useState([]);
+  const [search, setSearch] = useState("");
 
-  const [q, setQ] = useState("");
-  const [diet, setDiet] = useState("all");
-  const [family, setFamily] = useState("all");
-
-  const searchWrapRef = useRef(null);
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "/") {
-        e.preventDefault();
-        searchWrapRef.current?.querySelector("input")?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    fetch(`${API}/api/animals?habitat=vozduh`)
+      .then((res) => res.json())
+      .then((data) => {
+        const featured = Array.isArray(data)
+          ? data.filter((a) => a.featured !== false)
+          : [];
+        setAnimals(featured);
+      })
+      .catch((err) => console.error("Error fetching animals:", err));
   }, []);
 
+  const filtered = animals.filter((a) =>
+    a.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-blue-50 via-sky-50 to-cyan-50 text-gray-800">
-      <NavBar />
-      <section
-        className="relative h-[56vh] bg-cover bg-center overflow-hidden"
-        style={{ backgroundImage: "url('/src/assets/images/air-hero.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/25" />
-        <img
-          src="/src/assets/images/feather-left.png"
-          alt=""
-          aria-hidden
-          className="pointer-events-none select-none hidden md:block absolute top-10 left-6 w-24 opacity-80 [animation:float_9s_ease-in-out_infinite] z-20"
-        />
-        <img
-          src="/src/assets/images/feather-right.png"
-          alt=""
-          aria-hidden
-          className="pointer-events-none select-none hidden md:block absolute top-24 right-6 w-24 opacity-80 [animation:float_8s_ease-in-out_infinite] z-20"
-        />
+    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-white to-sky-50 py-12 px-6 relative overflow-hidden">
+      {/* Decorative floating circles */}
+      <div className="absolute top-20 left-10 w-40 h-40 bg-sky-300/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-60 h-60 bg-indigo-300/20 rounded-full blur-3xl animate-pulse" />
 
-        <div className="relative z-10 h-full max-w-6xl mx-auto px-4 flex flex-col justify-center">
-          <motion.h1
-            className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-xl tracking-tight"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            Воздушни Животни
-          </motion.h1>
-          <motion.p
-            className="mt-3 text-white/90 max-w-2xl"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            Естетска демонстрација со тематски дизајн за воздух—без API, фокус на изглед и движење.
-          </motion.p>
+      <h1 className="text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-indigo-500 drop-shadow-sm">
+        🌬️ Животни во Воздух
+      </h1>
+
+      {/* Search */}
+      <div className="max-w-md mx-auto mb-12">
+        <Input
+          type="text"
+          placeholder="Пребарај птици и животни во воздухот..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="backdrop-blur-md bg-white/40 border border-sky-200/50 shadow-lg rounded-2xl"
+        />
+      </div>
+
+      {/* Cards grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+        {filtered.map((animal, index) => (
           <motion.div
-            className="mt-6 flex flex-wrap gap-3"
-            initial={{ opacity: 0, y: 14 }}
+            key={animal._id}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <Button variant="secondary" className="flex items-center gap-2">
-              <Feather className="w-4 h-4" /> Истражи визуел
-            </Button>
-            <Button
-              variant="outline"
-              className="text-white border-white hover:bg-white/10"
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
-            >
-              Погледни примери
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="max-w-6xl mx-auto px-4 pt-10">
-        <div className="grid sm:grid-cols-3 gap-4">
-          {[{
-            title: "Облаци",
-            caption: "Живеалишта на височина",
-            img: "/src/assets/images/cloud-card.jpg",
-            icon: <Cloud className="w-5 h-5" />,
-          }, {
-            title: "Ветрови",
-            caption: "Миграција и движење",
-            img: "/src/assets/images/wind-card.jpg",
-            icon: <Wind className="w-5 h-5" />,
-          }, {
-            title: "Тропски",
-            caption: "Екзотични птици",
-            img: "/src/assets/images/tropical-card.jpg",
-            icon: <Sun className="w-5 h-5" />,
-          }].map((f, i) => (
-            <AnimateIn key={i} delay={i * 0.12}>
-              <Card className="relative h-40 md:h-48 overflow-hidden group border shadow-sm bg-cover bg-center" style={{ backgroundImage: `url('${f.img}')` }}>
-                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition" />
-                <CardContent className="relative z-10 flex flex-col justify-end h-full p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="rounded-full bg-white/80 backdrop-blur-sm p-2 text-sky-700 shadow-sm">
-                      {f.icon}
-                    </div>
-                    <p className="font-semibold text-white drop-shadow">{f.title}</p>
-                  </div>
-                  <p className="text-xs text-white/90 drop-shadow">{f.caption}</p>
+            <Card className="overflow-hidden relative group rounded-3xl border-2 border-transparent bg-white/30 backdrop-blur-xl shadow-lg hover:shadow-2xl transition-all duration-300">
+              {/* Prism/glass border */}
+              <div className="absolute inset-0 rounded-3xl p-[2px] bg-gradient-to-r from-sky-400 via-pink-300 to-indigo-400 opacity-70 group-hover:opacity-100 blur-sm" />
+              <div className="relative rounded-3xl h-full w-full bg-white/70 backdrop-blur-md">
+                <img
+                  src={animal.cardImage || "https://via.placeholder.com/400"}
+                  alt={animal.name}
+                  className="w-full h-48 object-cover rounded-t-3xl"
+                />
+                <CardContent className="p-5">
+                  <h2 className="text-xl font-semibold text-sky-800 mb-2">
+                    {animal.name}
+                  </h2>
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                    {animal.summary || "Без опис."}
+                  </p>
+                  <Link to={`/animals/${animal._id}`}>
+                    <Button className="w-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white rounded-xl shadow hover:opacity-90">
+                      Детали
+                    </Button>
+                  </Link>
                 </CardContent>
-              </Card>
-            </AnimateIn>
-          ))}
-        </div>
-      </section>
-
-      <section className="max-w-6xl mx-auto px-4 mt-8">
-        <div className="rounded-2xl bg-white/65 backdrop-blur-md border shadow-sm p-4 ring-1 ring-white/60">
-          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-            <div className="md:w-1/2">
-              <FancySearch value={q} onChange={setQ} onClear={() => setQ("")} inputRef={searchWrapRef} />
-            </div>
-            <div className="flex gap-3 md:flex-1">
-              <Select value={diet} onValueChange={setDiet}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Исхрана" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Сите исхрани</SelectItem>
-                  <SelectItem value="herbivore">Тревојад</SelectItem>
-                  <SelectItem value="carnivore">Месојад</SelectItem>
-                  <SelectItem value="omnivore">Сештојад</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={family} onValueChange={setFamily}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Фамилија" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Сите фамилии</SelectItem>
-                  <SelectItem value="accipitridae">Accipitridae</SelectItem>
-                  <SelectItem value="psittacidae">Psittacidae</SelectItem>
-                  <SelectItem value="laridae">Laridae</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="outline" className="md:w-auto">Филтри</Button>
-          </div>
-          <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
-            <Badge variant="secondary">9</Badge> визуелни примероци (placeholder-и)
-          </div>
-        </div>
-      </section>
-
-      <section className="relative mt-10" style={{ backgroundImage: "url('/src/assets/images/sky-texture.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
-        <div className="absolute inset-0 bg-sky-900/5" />
-        <div className="relative max-w-6xl mx-auto px-4 py-12">
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-  {list
-    .filter(a => a.featured !== false) // show only featured by default
-    .map((p, idx) => (
-      <AnimateIn key={p._id || p.name} delay={(idx % 6) * 0.06}>
-        <div className="relative rounded-xl group">
-          <div className="absolute -inset-[1px] rounded-xl opacity-0 group-hover:opacity-70 bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-200 blur-sm transition-opacity duration-300 pointer-events-none" />
-          <Card
-            className="relative z-10 bg-white/65 backdrop-blur-md border border-white/20 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-xl"
-            style={
-              p.cardImage
-                ? { backgroundImage: `url('${p.cardImage}')`, backgroundSize: "cover", backgroundPosition: "center" }
-                : undefined
-            }
-          >
-            <CardContent className="p-4" style={p.cardImage ? { background: "linear-gradient( to top, rgba(255,255,255,0.85), rgba(255,255,255,0.55) )" } : undefined}>
-              <div className="flex items-center justify-between">
-                <p className="font-semibold">{p.name}</p>
-                <span className="text-xs text-sky-700 bg-sky-100 rounded-full px-2 py-[2px]">воздух</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
-                {p.summary || (p.family ? `Фамилија: ${p.family}` : "Ова е пример-картичка за изглед.")}
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    if (p._id?.toString().startsWith("placeholder-")) return;
-                    // navigate to detail if you already wired it
-                    window.location.href = `/animals/vozduh/${p._id}`;
-                  }}
-                  disabled={p._id?.toString().startsWith("placeholder-")}
-                >
-                  Детали
-                </Button>
-                <Button size="sm" variant="ghost" className="opacity-80 hover:opacity-100">
-                  {/* your icon */}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </AnimateIn>
-    ))}
-</div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
 
-        </div>
-      </section>
-
-      <section className="max-w-6xl mx-auto px-4 py-10">
-        <AnimateIn>
-          <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100">
-            <CardContent className="p-6 md:p-8">
-              <h3 className="text-xl font-semibold mb-2">Дали знаеше?</h3>
-              <p className="text-gray-600">
-                Птиците имаат шупливи коски што им помагаат да летаат со помала тежина и подобра ефикасност.
-              </p>
-            </CardContent>
-          </Card>
-        </AnimateIn>
-      </section>
-
-      <div className="h-10" />
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <p className="text-center text-gray-600 mt-12">
+          Нема додадени животни во оваа категорија.
+        </p>
+      )}
     </div>
   );
 }

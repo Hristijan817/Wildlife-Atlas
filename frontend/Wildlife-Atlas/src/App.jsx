@@ -1,31 +1,35 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider, ProtectedRoute } from "@/auth";
-
-
 import NavBar from "@/components/NavBar";
 
-import Home from "./pages/Home";
-import LandAnimals from "./pages/LandAnimals";
+import Home from "@/pages/Home";
+import HabitatPage from "@/pages/HabitatPage";
+import AnimalDetails from "@/pages/AnimalDetails";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AddAnimal from "@/pages/AddAnimal";
+import LoginPage from "@/pages/LoginPage";
 import AirAnimals from "./pages/AirAnimals";
 import WaterAnimals from "./pages/WaterAnimals";
-import AdminDashboard from "./pages/AdminDashboard";
-import LoginPage from "./pages/LoginPage";
-import AddAnimal from "./pages/AddAnimal";
+import LandAnimals from "./pages/LandAnimals";
+
 
 const App = () => {
   return (
     <Router>
-      
         <AuthProvider apiUrl={import.meta.env.VITE_API_URL || "http://localhost:5000"}>
-          {/* NavBar (contains ThemeToggle) */}
           <NavBar />
-
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/kopno" element={<LandAnimals />} />
-            <Route path="/vozduh" element={<AirAnimals />} />
-            <Route path="/voda" element={<WaterAnimals />} />
+            {/* Habitat pages */}
+            <Route path="/kopno" element={<LandAnimals habitat="kopno" />} />
+            <Route path="/voda" element={<WaterAnimals habitat="voda" />} />
+            <Route path="/vozduh" element={<AirAnimals habitat="vozduh" />} />
+
+            {/* Details */}
+            <Route path="/animals/:id" element={<AnimalDetails />} />
+
+            {/* Admin */}
             <Route
               path="/admin"
               element={
@@ -34,15 +38,18 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            <Route path="/admin/add" element={
-  <ProtectedRoute>
-    <AddAnimal />
-  </ProtectedRoute>
-} />
+            <Route
+              path="/admin/add"
+              element={
+                <ProtectedRoute>
+                  <AddAnimal />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/login" element={<LoginPage />} />
           </Routes>
         </AuthProvider>
-      
     </Router>
   );
 };
