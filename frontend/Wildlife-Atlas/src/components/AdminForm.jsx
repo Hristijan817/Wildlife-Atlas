@@ -1,4 +1,3 @@
-// src/components/AdminForm.jsx
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,13 +14,15 @@ const DEFAULT_VALUES = {
   name: "",
   type: "",
   habitat: "",
+  size: "",
   family: "",
   lifespan: "",
   diet: "",
   description: "",
-  prey: "",
-  predators: "",
   cardImage: "",
+  images: "",
+  videos: "",
+  publications: "",
   summary: "",
   featured: true,
 };
@@ -37,7 +38,10 @@ export default function AdminForm({
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setValues((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setValues((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const onChangeHabitat = (e) => {
@@ -61,21 +65,28 @@ export default function AdminForm({
     }
     setError("");
 
-    // Normalize prey/predators → arrays
+    // Normalize arrays
     const payload = {
       ...values,
-      prey: values.prey
-        ? values.prey.split(",").map((s) => s.trim()).filter(Boolean)
+      images: values.images
+        ? values.images.split(",").map((s) => s.trim()).filter(Boolean)
         : [],
-      predators: values.predators
-        ? values.predators.split(",").map((s) => s.trim()).filter(Boolean)
+      videos: values.videos
+        ? values.videos.split(",").map((s) => s.trim()).filter(Boolean)
+        : [],
+      publications: values.publications
+        ? values.publications
+            .split("\n")
+            .map((line) => {
+              const [title, url] = line.split("|").map((s) => s.trim());
+              return title ? { title, url: url || "" } : null;
+            })
+            .filter(Boolean)
         : [],
     };
 
-    // Let parent do the API call
     await onSubmit?.(payload);
 
-    // If we were "adding", reset the form
     if (!initialValues || !initialValues._id) {
       setValues({ ...DEFAULT_VALUES });
     }
@@ -84,14 +95,23 @@ export default function AdminForm({
   return (
     <Card className="bg-card text-card-foreground border border-border">
       <CardContent className="p-4 space-y-3">
-        {error ? (
+        {error && (
           <div className="text-sm text-red-600 border border-red-300 bg-red-50 rounded-md px-3 py-2">
             {error}
           </div>
-        ) : null}
+        )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Input name="name" value={values.name} onChange={onChange} placeholder="Name" required />
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-3 gap-3"
+        >
+          <Input
+            name="name"
+            value={values.name}
+            onChange={onChange}
+            placeholder="Name"
+            required
+          />
 
           <select
             name="habitat"
@@ -101,17 +121,22 @@ export default function AdminForm({
             required
           >
             {HABITATS.map((h) => (
-              <option key={h.value} value={h.value} disabled={h.value === ""}>
+              <option
+                key={h.value}
+                value={h.value}
+                disabled={h.value === ""}
+              >
                 {h.label}
               </option>
             ))}
           </select>
 
           <Input name="type" value={values.type} onChange={onChange} placeholder="Type" />
+          <Input name="size" value={values.size} onChange={onChange} placeholder="Size" />
           <Input name="family" value={values.family} onChange={onChange} placeholder="Family" />
           <Input name="lifespan" value={values.lifespan} onChange={onChange} placeholder="Lifespan" />
+          <Input name="diet" value={values.diet} onChange={onChange} placeholder="Diet" />
           <Input name="description" value={values.description} onChange={onChange} placeholder="Description" />
-
 
           <Input
             name="cardImage"
@@ -119,6 +144,31 @@ export default function AdminForm({
             onChange={onChange}
             placeholder="Card image (URL)"
             className="md:col-span-3"
+          />
+
+          {/* ✅ New fields */}
+          <Input
+            name="images"
+            value={values.images}
+            onChange={onChange}
+            placeholder="Images (comma-separated URLs)"
+            className="md:col-span-3"
+          />
+
+          <Input
+            name="videos"
+            value={values.videos}
+            onChange={onChange}
+            placeholder="Videos (comma-separated URLs)"
+            className="md:col-span-3"
+          />
+
+          <textarea
+            name="publications"
+            value={values.publications}
+            onChange={onChange}
+            placeholder="Publications (one per line, format: Title|URL)"
+            className="min-h-[90px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground p-2 text-sm md:col-span-3"
           />
 
           <textarea

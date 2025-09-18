@@ -1,8 +1,9 @@
+// src/pages/AdminDashboard.jsx
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useApi } from "@/services/api";
+import { useApi } from "../services/api";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -20,22 +21,29 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // form fields (no cardImage URL here anymore)
   const [form, setForm] = useState({
     name: "",
     type: "",
+    size: "",
     habitat: "",
     family: "",
     lifespan: "",
     diet: "",
     description: "",
     summary: "",
+    publications: "",
     featured: true,
   });
 
-  // image file state + preview
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState("");
+  // file states
+  const [cardFile, setCardFile] = useState(null);
+  const [cardPreview, setCardPreview] = useState("");
+
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+
+  const [videoFiles, setVideoFiles] = useState([]);
+  const [videoNames, setVideoNames] = useState([]);
 
   async function fetchAnimals() {
     try {
@@ -60,15 +68,22 @@ export default function AdminDashboard() {
     setForm((prev) => ({ ...prev, habitat: e.target.value }));
   }
 
-  function onChangeFile(e) {
+  function onChangeCardFile(e) {
     const f = e.target.files?.[0] || null;
-    setFile(f);
-    if (f) {
-      const url = URL.createObjectURL(f);
-      setPreview(url);
-    } else {
-      setPreview("");
-    }
+    setCardFile(f);
+    setCardPreview(f ? URL.createObjectURL(f) : "");
+  }
+
+  function onChangeImageFiles(e) {
+    const files = Array.from(e.target.files || []);
+    setImageFiles(files);
+    setImagePreviews(files.map((f) => URL.createObjectURL(f)));
+  }
+
+  function onChangeVideoFiles(e) {
+    const files = Array.from(e.target.files || []);
+    setVideoFiles(files);
+    setVideoNames(files.map((f) => f.name));
   }
 
   function validate() {
@@ -76,7 +91,6 @@ export default function AdminDashboard() {
     if (!["kopno", "voda", "vozduh"].includes(form.habitat)) {
       return "Habitat must be one of: kopno, voda, vozduh.";
     }
-    // Image is optional on client; backend accepts without file.
     return "";
   }
 
@@ -92,18 +106,32 @@ export default function AdminDashboard() {
 
     setLoading(true);
     try {
-      // Build FormData for Multer (IMPORTANT: do not set Content-Type header yourself)
       const fd = new FormData();
       fd.append("name", form.name.trim());
       fd.append("habitat", form.habitat);
       if (form.type) fd.append("type", form.type.trim());
+      if (form.size) fd.append("size", form.size.trim());
       if (form.family) fd.append("family", form.family.trim());
       if (form.lifespan) fd.append("lifespan", form.lifespan.trim());
       if (form.diet) fd.append("diet", form.diet.trim());
       if (form.description) fd.append("description", form.description.trim());
       if (form.summary) fd.append("summary", form.summary.trim());
       fd.append("featured", String(!!form.featured));
-      if (file) fd.append("cardImage", file); // <-- field name for Multer
+
+      if (form.publications) {
+        const pubs = form.publications
+          .split("\n")
+          .map((line) => {
+            const [title, url] = line.split("|").map((s) => s.trim());
+            return title ? { title, url: url || "" } : null;
+          })
+          .filter(Boolean);
+        fd.append("publications", JSON.stringify(pubs));
+      }
+
+      if (cardFile) fd.append("cardImage", cardFile);
+      imageFiles.forEach((f) => fd.append("images", f));
+      videoFiles.forEach((f) => fd.append("videos", f));
 
       const res = await post("/api/animals", fd);
       if (!res.ok) {
@@ -112,20 +140,26 @@ export default function AdminDashboard() {
       }
 
       await fetchAnimals();
-      // reset form
+
       setForm({
         name: "",
         type: "",
+        size: "",
         habitat: "",
         family: "",
         lifespan: "",
         diet: "",
         description: "",
         summary: "",
+        publications: "",
         featured: true,
       });
-      setFile(null);
-      setPreview("");
+      setCardFile(null);
+      setCardPreview("");
+      setImageFiles([]);
+      setImagePreviews([]);
+      setVideoFiles([]);
+      setVideoNames([]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -162,13 +196,7 @@ export default function AdminDashboard() {
           )}
 
           <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Input
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              placeholder="Name"
-              required
-            />
+            <Input name="name" value={form.name} onChange={onChange} placeholder="Name" required />
 
             <select
               name="habitat"
@@ -185,28 +213,50 @@ export default function AdminDashboard() {
             </select>
 
             <Input name="type" value={form.type} onChange={onChange} placeholder="Type (optional)" />
+            <Input name="size" value={form.size} onChange={onChange} placeholder="Size (optional)" />
             <Input name="family" value={form.family} onChange={onChange} placeholder="Family (optional)" />
             <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan (optional)" />
             <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet (optional)" />
             <Input name="description" value={form.description} onChange={onChange} placeholder="Description (optional)" />
 
-            {/* Image file input + preview (replaces URL field) */}
+            {/* Card image */}
             <div className="md:col-span-3 space-y-2">
-              <label className="text-sm font-medium">Card image (file)</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={onChangeFile}
-                className="block w-full rounded-md border p-2 text-sm"
-              />
-              {preview && (
-                <img
-                  src={preview}
-                  alt="preview"
-                  className="mt-2 h-40 w-auto rounded-md border object-cover"
-                />
+              <label className="text-sm font-medium">Card image</label>
+              <input type="file" accept="image/*" onChange={onChangeCardFile} className="block w-full rounded-md border p-2 text-sm" />
+              {cardPreview && (
+                <img src={cardPreview} alt="preview" className="mt-2 h-40 w-auto rounded-md border object-cover" />
               )}
             </div>
+
+            {/* Multiple images */}
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-sm font-medium">Additional Images</label>
+              <input type="file" accept="image/*" multiple onChange={onChangeImageFiles} className="block w-full rounded-md border p-2 text-sm" />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imagePreviews.map((src, i) => (
+                  <img key={i} src={src} alt={`img-${i}`} className="h-24 w-24 object-cover rounded border" />
+                ))}
+              </div>
+            </div>
+
+            {/* Multiple videos */}
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-sm font-medium">Videos</label>
+              <input type="file" accept="video/*" multiple onChange={onChangeVideoFiles} className="block w-full rounded-md border p-2 text-sm" />
+              <ul className="mt-2 text-sm text-gray-600 list-disc pl-5">
+                {videoNames.map((name, i) => (
+                  <li key={i}>{name}</li>
+                ))}
+              </ul>
+            </div>
+
+            <textarea
+              name="publications"
+              value={form.publications}
+              onChange={onChange}
+              placeholder="Publications (one per line, format: Title|URL)"
+              className="min-h-[90px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground p-2 text-sm md:col-span-3"
+            />
 
             <textarea
               name="summary"
@@ -217,32 +267,13 @@ export default function AdminDashboard() {
             />
 
             <label className="flex items-center gap-2 text-sm md:col-span-3">
-              <input
-                type="checkbox"
-                name="featured"
-                checked={form.featured}
-                onChange={onChange}
-              />
+              <input type="checkbox" name="featured" checked={form.featured} onChange={onChange} />
               Show on habitat cards (featured)
             </label>
 
             <div className="md:col-span-3 flex items-center gap-2">
               <Button type="submit" disabled={loading}>
                 {loading ? "Saving…" : "Add Animal"}
-              </Button>
-
-              {/* Debug payload (remove after testing) */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  console.log("Will POST /api/animals (FormData):", {
-                    ...form,
-                    fileSelected: !!file,
-                  });
-                }}
-              >
-                Debug payload
               </Button>
             </div>
           </form>
@@ -264,20 +295,17 @@ export default function AdminDashboard() {
           </thead>
           <tbody>
             {list.map((a) => {
-              // Support both absolute URLs and backend-served /uploads/ paths
               const imgSrc = a.cardImage
-                ? (a.cardImage.startsWith("http") ? a.cardImage : `${API}${a.cardImage}`)
+                ? a.cardImage.startsWith("http")
+                  ? a.cardImage
+                  : `${API}${a.cardImage}`
                 : null;
 
               return (
                 <tr key={a._id} className="border-b hover:bg-black/5">
                   <td className="p-2">
                     {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt=""
-                        className="w-16 h-12 object-cover rounded border"
-                      />
+                      <img src={imgSrc} alt="" className="w-16 h-12 object-cover rounded border" />
                     ) : (
                       <span className="text-xs text-gray-400">—</span>
                     )}
@@ -285,11 +313,7 @@ export default function AdminDashboard() {
                   <td className="p-2 font-medium">
                     <div className="flex flex-col">
                       <span>{a.name}</span>
-                      {a.summary ? (
-                        <span className="text-xs text-gray-500 line-clamp-2">
-                          {a.summary}
-                        </span>
-                      ) : null}
+                      {a.summary ? <span className="text-xs text-gray-500 line-clamp-2">{a.summary}</span> : null}
                     </div>
                   </td>
                   <td className="p-2">{a.habitat}</td>

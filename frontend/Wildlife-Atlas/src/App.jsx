@@ -12,7 +12,7 @@ import LoginPage from "@/pages/LoginPage";
 import AirAnimals from "./pages/AirAnimals";
 import WaterAnimals from "./pages/WaterAnimals";
 import LandAnimals from "./pages/LandAnimals";
-
+import AnimalEdit from "./components/AnimalEdit";
 
 const App = () => {
   return (
@@ -28,6 +28,11 @@ const App = () => {
 
             {/* Details */}
             <Route path="/animals/:id" element={<AnimalDetails />} />
+            <Route path="/animals/:id/edit" element={
+              <ProtectedRoute>
+                <AnimalEdit />
+              </ProtectedRoute>
+            } />
 
             {/* Admin */}
             <Route

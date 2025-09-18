@@ -1,4 +1,3 @@
-// routes/animalRoutes.js
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
@@ -12,35 +11,51 @@ const {
   deleteAnimal,
 } = require("../controllers/animalController");
 
-const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
-// === Multer setup ===
+// Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // folder where images are stored
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // unique filename
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
 const upload = multer({ storage });
 
-// === Routes ===
+// --- Routes ---
 
-// Public: list animals (supports ?habitat=kopno/voda/vozduh)
+// Public
 router.get("/", getAnimals);
-
-// Public: single animal by id
 router.get("/:id", getAnimalById);
 
-// Admin only: create with image upload
-router.post("/", protect, adminOnly, upload.single("cardImage"), createAnimal);
+// Authenticated create with file fields
+router.post(
+  "/",
+  protect,
+  upload.fields([
+    { name: "cardImage", maxCount: 1 },
+    { name: "images", maxCount: 10 },
+    { name: "videos", maxCount: 5 }, // accept video files too
+  ]),
+  createAnimal
+);
 
-// Admin only: update with optional image upload
-router.put("/:id", protect, adminOnly, upload.single("cardImage"), updateAnimal);
+// Authenticated update with file fields (optional uploads)
+router.put(
+  "/:id",
+  protect,
+  upload.fields([
+    { name: "cardImage", maxCount: 1 },
+    { name: "images", maxCount: 10 },
+    { name: "videos", maxCount: 5 },
+  ]),
+  updateAnimal
+);
 
-// Admin only: delete
-router.delete("/:id", protect, adminOnly, deleteAnimal);
+// Authenticated delete
+router.delete("/:id", protect, deleteAnimal);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import typography from "@tailwindcss/typography"; // add plugin
+import typography from "@tailwindcss/typography";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -12,7 +12,21 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss({
-        plugins: [typography], // enable prose styles
+        config: {
+          content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+          theme: {
+            extend: {},
+          },
+          plugins: [typography], // ✅ enable prose
+          safelist: [
+            "border-emerald-400",
+            "border-amber-400",
+            "border-lime-400",
+            "text-emerald-600",
+            "text-amber-600",
+            "text-lime-600",
+          ],
+        },
       }),
     ],
     resolve: {

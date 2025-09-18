@@ -1,6 +1,10 @@
+// controllers/animalController.js
 const Animal = require("../models/Animal");
 const { v4: uuidv4 } = require("uuid");
+
 const API_URL = process.env.API_URL || "http://localhost:5000";
+
+/* ----------------------------- Helpers ---------------------------------- */
 
 function normalizeHabitat(value) {
   const v = String(value || "").toLowerCase();
@@ -15,19 +19,41 @@ function normalizeHabitat(value) {
   return map[v] || null;
 }
 
-// Helper: prepend API_URL to relative paths
+// Prepend API_URL to relative /uploads paths.
+// Works for single strings or arrays of strings.
+function absolutizePath(p) {
+  if (typeof p !== "string") return p;
+  return p.startsWith("/uploads") ? `${API_URL}${p}` : p;
+}
+
 function withAbsoluteUrls(animal) {
   if (!animal) return animal;
-
   const doc = { ...animal };
 
-  if (doc.cardImage && doc.cardImage.startsWith("/uploads")) {
-    doc.cardImage = `${API_URL}${doc.cardImage}`;
+  if (doc.cardImage) {
+    doc.cardImage = absolutizePath(doc.cardImage);
   }
-  
+  if (Array.isArray(doc.images)) {
+    doc.images = doc.images.map(absolutizePath);
+  }
+  if (Array.isArray(doc.videos)) {
+    doc.videos = doc.videos.map(absolutizePath);
+  }
 
   return doc;
 }
+
+// Safe JSON parse helper
+function tryParseJson(str, fallback = []) {
+  try {
+    const parsed = JSON.parse(str);
+    return parsed;
+  } catch {
+    return fallback;
+  }
+}
+
+/* ------------------------------- CRUD ----------------------------------- */
 
 exports.getAnimals = async (req, res) => {
   try {
@@ -54,40 +80,88 @@ exports.getAnimalById = async (req, res) => {
   }
 };
 
+/**
+ * Create Animal
+ * Accepts multipart/form-data via Multer with fields:
+ * - files: cardImage (single), images (array), videos (array)
+ * - text: name, habitat, type (alt), size, family, lifespan, diet, description, summary, featured
+ * - text: publications (JSON stringified array of {title, url})
+ * - optional: images (CSV URLs), videos (CSV URLs), cardImage (URL fallback)
+ */
 exports.createAnimal = async (req, res) => {
   try {
+    // Multipart text fields arrive in req.body as strings
     const habitat = normalizeHabitat(req.body.habitat || req.body.type);
     if (!req.body.name || !habitat) {
       return res.status(400).json({ message: "Missing required fields: name, habitat" });
     }
 
-    const cardImage = req.file ? `/uploads/${req.file.filename}` : req.body.cardImage || "";
+    // Publications may be sent as JSON string (from FormData)
+    let publications = [];
+    if (typeof req.body.publications === "string" && req.body.publications.trim()) {
+      const parsed = tryParseJson(req.body.publications, []);
+      publications = Array.isArray(parsed) ? parsed : [];
+    }
+
+    // Optional URLs in body (if you also support URLs alongside files)
+    const imagesFromBody =
+      typeof req.body.images === "string" && req.body.images.trim()
+        ? req.body.images.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+    const videosFromBody =
+      typeof req.body.videos === "string" && req.body.videos.trim()
+        ? req.body.videos.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+
+    // Files from Multer (expecting multer.fields in the route)
+    const cardImageFromFile = req.files?.cardImage?.[0]
+      ? `/uploads/${req.files.cardImage[0].filename}`
+      : (req.body.cardImage || ""); // allow URL fallback
+
+    const imagesFromFiles = (req.files?.images || []).map((f) => `/uploads/${f.filename}`);
+    const videosFromFiles = (req.files?.videos || []).map((f) => `/uploads/${f.filename}`);
 
     const doc = new Animal({
-      id: uuidv4(),
+      id: uuidv4(), // keep your custom id if you rely on it elsewhere
       name: String(req.body.name).trim(),
       habitat,
       type: { kopno: "land", voda: "water", vozduh: "air" }[habitat],
+      size: req.body.size || "",
       family: req.body.family || "",
       lifespan: req.body.lifespan || "",
       diet: req.body.diet || "",
       description: req.body.description || "",
       summary: req.body.summary || "",
-      cardImage,
+      cardImage: cardImageFromFile,
+      images: [...imagesFromFiles, ...imagesFromBody],
+      videos: [...videosFromFiles, ...videosFromBody],
+      publications,
       featured: req.body.featured === "false" ? false : true,
-
-      // new fields
-      size: req.body.size || "",
-     
     });
 
     await doc.save();
-    res.status(201).json(withAbsoluteUrls(doc.toObject()));
+
+    // Expand paths to absolute URLs for the response
+    const out = withAbsoluteUrls(doc.toObject());
+    res.status(201).json(out);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("createAnimal error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
+/**
+ * Update Animal
+ * Supports:
+ * - Text fields in req.body
+ * - File replacements/additions via Multer: cardImage (single), images (array), videos (array)
+ * - URL additions for images/videos via CSV strings (same keys)
+ * - publications as JSON string (replaces full publications array)
+ *
+ * NOTE: For images/videos:
+ * - If files/URLs are provided, they will be **appended** to existing arrays unless
+ *   you also pass `replaceMedia=true` to replace them entirely.
+ */
 exports.updateAnimal = async (req, res) => {
   try {
     const animal = await Animal.findById(req.params.id);
@@ -97,15 +171,6 @@ exports.updateAnimal = async (req, res) => {
     fields.forEach((f) => {
       if (req.body[f] !== undefined) animal[f] = req.body[f];
     });
-
-    
-
-    // Handle image update
-    if (req.file) {
-      animal.cardImage = `/uploads/${req.file.filename}`;
-    } else if (req.body.cardImage !== undefined) {
-      animal.cardImage = req.body.cardImage;
-    }
 
     // Habitat/type update
     if (req.body.habitat || req.body.type) {
@@ -119,9 +184,58 @@ exports.updateAnimal = async (req, res) => {
       animal.featured = req.body.featured === "false" ? false : true;
     }
 
+    // Publications (JSON string replaces entire array)
+    if (typeof req.body.publications === "string") {
+      const pubs = tryParseJson(req.body.publications, []);
+      if (Array.isArray(pubs)) animal.publications = pubs;
+    }
+
+    // Handle card image update: file has priority; otherwise allow URL fallback
+    if (req.files?.cardImage?.[0]) {
+      animal.cardImage = `/uploads/${req.files.cardImage[0].filename}`;
+    } else if (req.body.cardImage !== undefined) {
+      animal.cardImage = req.body.cardImage;
+    }
+
+    // Images/videos handling
+    const replaceMedia = String(req.body.replaceMedia || "").toLowerCase() === "true";
+
+    // New files
+    const newImageFiles = (req.files?.images || []).map((f) => `/uploads/${f.filename}`);
+    const newVideoFiles = (req.files?.videos || []).map((f) => `/uploads/${f.filename}`);
+
+    // New URLs from body (CSV)
+    const newImageUrls =
+      typeof req.body.images === "string" && req.body.images.trim()
+        ? req.body.images.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+    const newVideoUrls =
+      typeof req.body.videos === "string" && req.body.videos.trim()
+        ? req.body.videos.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+
+    if (replaceMedia) {
+      // Replace arrays completely
+      if (newImageFiles.length || newImageUrls.length) {
+        animal.images = [...newImageFiles, ...newImageUrls];
+      }
+      if (newVideoFiles.length || newVideoUrls.length) {
+        animal.videos = [...newVideoFiles, ...newVideoUrls];
+      }
+    } else {
+      // Append to existing arrays
+      if (newImageFiles.length || newImageUrls.length) {
+        animal.images = [...(animal.images || []), ...newImageFiles, ...newImageUrls];
+      }
+      if (newVideoFiles.length || newVideoUrls.length) {
+        animal.videos = [...(animal.videos || []), ...newVideoFiles, ...newVideoUrls];
+      }
+    }
+
     await animal.save();
     res.json(withAbsoluteUrls(animal.toObject()));
   } catch (err) {
+    console.error("updateAnimal error:", err);
     res.status(500).json({ message: err.message });
   }
 };

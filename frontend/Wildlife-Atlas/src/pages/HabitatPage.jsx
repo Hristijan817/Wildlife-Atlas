@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "@/services/api";
+import { useApi } from "../services/api";
 import AnimalCard from "@/components/AnimalCard";
 
 const TITLES = {

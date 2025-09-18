@@ -19,10 +19,12 @@ async function protect(req, res, next) {
   }
 }
 
-function adminOnly(req, res, next) {
-  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Admin only" });
-  next();
-}
+const adminOnly = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(401).json({ message: "Not authorized as admin" });
+  }
+};
 
 module.exports = { protect, adminOnly };

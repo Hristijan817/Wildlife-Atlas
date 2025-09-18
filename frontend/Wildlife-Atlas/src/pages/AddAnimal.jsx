@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AdminForm from "@/components/AdminForm";
-import { useApi } from "@/services/api";
+import { useApi } from "../services/api";
 
 export default function AddAnimal() {
   const { post } = useApi();
