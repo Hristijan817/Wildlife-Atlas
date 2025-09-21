@@ -26,7 +26,17 @@ export default function LandAnimals() {
   );
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-emerald-900 via-emerald-800 to-emerald-950 text-white overflow-hidden">
+    <div className="relative min-h-screen text-white overflow-hidden">
+      {/* Background image behind everything */}
+      <div className="absolute inset-0 -z-10">
+        <img
+          src="/landanimals-hero.jpg"
+          alt="Hero Background"
+          className="w-full h-full object-cover opacity-70"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/70 via-emerald-800/60 to-emerald-950/90" />
+      </div>
+
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -59,13 +69,6 @@ export default function LandAnimals() {
           className="backdrop-blur-md bg-emerald-700/30 border border-emerald-400/50 text-white placeholder:text-emerald-200 shadow-lg rounded-2xl focus:ring-2 focus:ring-lime-400"
         />
       </div>
-
-      {/* Animated Divider */}
-      <motion.div
-        className="max-w-6xl mx-auto h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent my-12"
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 3, repeat: Infinity }}
-      />
 
       {/* Cards Grid */}
       <div className="relative z-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto px-6 pb-20">
