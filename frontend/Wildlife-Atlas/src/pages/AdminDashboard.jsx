@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApi } from "../services/api";
+import { Info, Image as ImageIcon, Video, BookOpen, Star } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -35,13 +36,10 @@ export default function AdminDashboard() {
     featured: true,
   });
 
-  // file states
   const [cardFile, setCardFile] = useState(null);
   const [cardPreview, setCardPreview] = useState("");
-
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
-
   const [videoFiles, setVideoFiles] = useState([]);
   const [videoNames, setVideoNames] = useState([]);
 
@@ -181,161 +179,226 @@ export default function AdminDashboard() {
     }
   }
 
+  // Quick stats
+  const totalAnimals = list.length;
+  const featuredCount = list.filter((a) => a.featured !== false).length;
+  const habitatsCovered = new Set(list.map((a) => a.habitat)).size;
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Add New Animal</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200 p-6">
+      <div className="max-w-6xl mx-auto space-y-10">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent drop-shadow-md">
+            Admin Dashboard
+          </h1>
+        </div>
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          {error && (
-            <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+        {/* Stats Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
+            <p className="text-sm text-gray-500">Total Animals</p>
+            <p className="text-2xl font-bold text-slate-800">{totalAnimals}</p>
+          </div>
+          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
+            <p className="text-sm text-gray-500">Featured</p>
+            <p className="text-2xl font-bold text-yellow-600">{featuredCount}</p>
+          </div>
+          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
+            <p className="text-sm text-gray-500">Habitats Covered</p>
+            <p className="text-2xl font-bold text-sky-600">{habitatsCovered}</p>
+          </div>
+        </div>
 
-          <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Input name="name" value={form.name} onChange={onChange} placeholder="Name" required />
+        {/* Add Animal Form */}
+        <Card className="shadow-lg hover:shadow-xl transition rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6 space-y-8">
+            <h2 className="flex items-center gap-2 text-2xl font-semibold text-slate-800 bg-gradient-to-r from-sky-100 to-transparent px-3 py-2 rounded-lg">
+              <Info className="w-6 h-6 text-sky-600" /> Add New Animal
+            </h2>
 
-            <select
-              name="habitat"
-              value={form.habitat}
-              onChange={onChangeHabitat}
-              className="h-10 rounded-md border px-3 text-sm"
-              required
-            >
-              {HABITATS.map((h) => (
-                <option key={h.value} value={h.value} disabled={h.value === ""}>
-                  {h.label}
-                </option>
-              ))}
-            </select>
-
-            <Input name="type" value={form.type} onChange={onChange} placeholder="Type (optional)" />
-            <Input name="size" value={form.size} onChange={onChange} placeholder="Size (optional)" />
-            <Input name="family" value={form.family} onChange={onChange} placeholder="Family (optional)" />
-            <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan (optional)" />
-            <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet (optional)" />
-            <Input name="description" value={form.description} onChange={onChange} placeholder="Description (optional)" />
-
-            {/* Card image */}
-            <div className="md:col-span-3 space-y-2">
-              <label className="text-sm font-medium">Card image</label>
-              <input type="file" accept="image/*" onChange={onChangeCardFile} className="block w-full rounded-md border p-2 text-sm" />
-              {cardPreview && (
-                <img src={cardPreview} alt="preview" className="mt-2 h-40 w-auto rounded-md border object-cover" />
-              )}
-            </div>
-
-            {/* Multiple images */}
-            <div className="md:col-span-3 space-y-2">
-              <label className="text-sm font-medium">Additional Images</label>
-              <input type="file" accept="image/*" multiple onChange={onChangeImageFiles} className="block w-full rounded-md border p-2 text-sm" />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {imagePreviews.map((src, i) => (
-                  <img key={i} src={src} alt={`img-${i}`} className="h-24 w-24 object-cover rounded border" />
-                ))}
+            {error && (
+              <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
               </div>
-            </div>
+            )}
 
-            {/* Multiple videos */}
-            <div className="md:col-span-3 space-y-2">
-              <label className="text-sm font-medium">Videos</label>
-              <input type="file" accept="video/*" multiple onChange={onChangeVideoFiles} className="block w-full rounded-md border p-2 text-sm" />
-              <ul className="mt-2 text-sm text-gray-600 list-disc pl-5">
-                {videoNames.map((name, i) => (
-                  <li key={i}>{name}</li>
-                ))}
-              </ul>
-            </div>
+            <form onSubmit={onCreate} className="space-y-8">
+              {/* Section: Basic Info */}
+              <div className="space-y-4">
+                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
+                  <Info className="w-5 h-5 text-sky-500" /> Basic Info
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input name="name" value={form.name} onChange={onChange} placeholder="Name" required />
+                  <select
+                    name="habitat"
+                    value={form.habitat}
+                    onChange={onChangeHabitat}
+                    className="h-10 rounded-md border px-3 text-sm"
+                    required
+                  >
+                    {HABITATS.map((h) => (
+                      <option key={h.value} value={h.value} disabled={h.value === ""}>
+                        {h.label}
+                      </option>
+                    ))}
+                  </select>
+                  <Input name="type" value={form.type} onChange={onChange} placeholder="Type (optional)" />
+                  <Input name="size" value={form.size} onChange={onChange} placeholder="Size (optional)" />
+                  <Input name="family" value={form.family} onChange={onChange} placeholder="Family (optional)" />
+                  <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan (optional)" />
+                  <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet (optional)" />
+                  <Input name="description" value={form.description} onChange={onChange} placeholder="Description (optional)" />
+                </div>
+              </div>
 
-            <textarea
-              name="publications"
-              value={form.publications}
-              onChange={onChange}
-              placeholder="Publications (one per line, format: Title|URL)"
-              className="min-h-[90px] rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground p-2 text-sm md:col-span-3"
-            />
+              {/* Section: Media */}
+              <div className="space-y-4">
+                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
+                  <ImageIcon className="w-5 h-5 text-sky-500" /> Media Uploads
+                </h3>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Card image</label>
+                  <input type="file" accept="image/*" onChange={onChangeCardFile} className="block w-full rounded-md border p-2 text-sm" />
+                  {cardPreview && <img src={cardPreview} alt="preview" className="mt-2 h-40 w-auto rounded-md border object-cover" />}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Additional Images</label>
+                  <input type="file" accept="image/*" multiple onChange={onChangeImageFiles} className="block w-full rounded-md border p-2 text-sm" />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {imagePreviews.map((src, i) => (
+                      <img key={i} src={src} alt={`img-${i}`} className="h-24 w-24 object-cover rounded border" />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <Video className="w-4 h-4 text-sky-500" /> Videos
+                  </label>
+                  <input type="file" accept="video/*" multiple onChange={onChangeVideoFiles} className="block w-full rounded-md border p-2 text-sm" />
+                  <ul className="mt-2 text-sm text-gray-600 list-disc pl-5">
+                    {videoNames.map((name, i) => (
+                      <li key={i}>{name}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
 
-            <textarea
-              name="summary"
-              value={form.summary}
-              onChange={onChange}
-              placeholder="Short summary for card (1–2 lines) (optional)"
-              className="min-h-[90px] rounded-md border p-2 text-sm md:col-span-3"
-            />
+              {/* Section: Extra Details */}
+              <div className="space-y-4">
+                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
+                  <BookOpen className="w-5 h-5 text-sky-500" /> Extra Details
+                </h3>
+                <textarea
+                  name="publications"
+                  value={form.publications}
+                  onChange={onChange}
+                  placeholder="Publications (Title|URL per line)"
+                  className="min-h-[90px] rounded-md border p-2 text-sm w-full"
+                />
+                <textarea
+                  name="summary"
+                  value={form.summary}
+                  onChange={onChange}
+                  placeholder="Short summary (1–2 lines)"
+                  className="min-h-[90px] rounded-md border p-2 text-sm w-full"
+                />
+                <label className="flex items-center gap-2 text-sm">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <input type="checkbox" name="featured" checked={form.featured} onChange={onChange} />
+                  Show on habitat cards
+                </label>
+              </div>
 
-            <label className="flex items-center gap-2 text-sm md:col-span-3">
-              <input type="checkbox" name="featured" checked={form.featured} onChange={onChange} />
-              Show on habitat cards (featured)
-            </label>
+              <div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-90 shadow"
+                >
+                  {loading ? "Saving…" : "Add Animal"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-            <div className="md:col-span-3 flex items-center gap-2">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving…" : "Add Animal"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left border-b">
-              <th className="p-2">Card</th>
-              <th className="p-2">Name</th>
-              <th className="p-2">Habitat</th>
-              <th className="p-2">Diet</th>
-              <th className="p-2">Featured</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((a) => {
-              const imgSrc = a.cardImage
-                ? a.cardImage.startsWith("http")
-                  ? a.cardImage
-                  : `${API}${a.cardImage}`
-                : null;
-
-              return (
-                <tr key={a._id} className="border-b hover:bg-black/5">
-                  <td className="p-2">
-                    {imgSrc ? (
-                      <img src={imgSrc} alt="" className="w-16 h-12 object-cover rounded border" />
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="p-2 font-medium">
-                    <div className="flex flex-col">
-                      <span>{a.name}</span>
-                      {a.summary ? <span className="text-xs text-gray-500 line-clamp-2">{a.summary}</span> : null}
+        {/* Animals Table */}
+        <div className="overflow-x-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition border border-slate-200">
+          <table className="min-w-full text-sm">
+            <thead className="sticky top-0 bg-slate-100 shadow">
+              <tr className="text-left border-b">
+                <th className="p-3">Card</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Habitat</th>
+                <th className="p-3">Diet</th>
+                <th className="p-3">Featured</th>
+                <th className="p-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-center">
+                    <div className="animate-pulse flex justify-center gap-4">
+                      <div className="w-16 h-12 bg-slate-200 rounded" />
+                      <div className="w-32 h-6 bg-slate-200 rounded" />
+                      <div className="w-24 h-6 bg-slate-200 rounded" />
                     </div>
                   </td>
-                  <td className="p-2">{a.habitat}</td>
-                  <td className="p-2">{a.diet || "—"}</td>
-                  <td className="p-2">{a.featured === false ? "No" : "Yes"}</td>
-                  <td className="p-2">
-                    <Button variant="destructive" onClick={() => onDelete(a._id)}>
-                      Delete
-                    </Button>
+                </tr>
+              ) : list.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-4xl">🦊</span>
+                      <p>No animals yet. Add your first one!</p>
+                    </div>
                   </td>
                 </tr>
-              );
-            })}
-            {list.length === 0 && (
-              <tr>
-                <td className="p-4 text-gray-500" colSpan={6}>
-                  No animals yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : (
+                list.map((a, idx) => {
+                  const imgSrc = a.cardImage
+                    ? a.cardImage.startsWith("http")
+                      ? a.cardImage
+                      : `${API}${a.cardImage}`
+                    : null;
+
+                  return (
+                    <tr key={a._id} className={`${idx % 2 === 0 ? "bg-slate-50/70" : "bg-white/70"} border-b hover:bg-sky-50 transition`}>
+                      <td className="p-3">
+                        {imgSrc ? (
+                          <img src={imgSrc} alt="" className="w-16 h-12 object-cover rounded border" />
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="p-3 font-medium">
+                        <div className="flex flex-col">
+                          <span>{a.name}</span>
+                          {a.summary ? <span className="text-xs text-gray-500 line-clamp-2">{a.summary}</span> : null}
+                        </div>
+                      </td>
+                      <td className="p-3">{a.habitat}</td>
+                      <td className="p-3">{a.diet || "—"}</td>
+                      <td className="p-3">{a.featured === false ? "—" : "⭐"}</td>
+                      <td className="p-3">
+                        <Button
+                          variant="destructive"
+                          onClick={() => onDelete(a._id)}
+                          className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90"
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

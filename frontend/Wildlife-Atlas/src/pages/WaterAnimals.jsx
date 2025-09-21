@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import AnimalCard from "@/components/AnimalCard";
+import { motion } from "framer-motion";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -12,54 +13,76 @@ export default function WaterAnimals() {
     fetch(`${API}/api/animals?habitat=voda`)
       .then((res) => res.json())
       .then((data) => {
-        const featured = Array.isArray(data) ? data.filter((a) => a.featured !== false) : [];
+        const featured = Array.isArray(data)
+          ? data.filter((a) => a.featured !== false)
+          : [];
         setAnimals(featured);
       })
       .catch((err) => console.error("Error fetching animals:", err));
   }, []);
 
-  const filtered = useMemo(
-    () => animals.filter((a) => a.name?.toLowerCase().includes(search.toLowerCase())),
-    [animals, search]
+  const filtered = animals.filter((a) =>
+    a.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-200 via-white to-blue-100 py-12 px-6 relative overflow-hidden">
-      {/* Decorative bubbles */}
-      <div className="absolute top-28 left-16 w-36 h-36 bg-cyan-400/30 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-24 right-16 w-60 h-60 bg-blue-400/30 rounded-full blur-3xl animate-pulse" />
+    <div className="relative min-h-screen bg-gradient-to-b from-blue-950 via-blue-900 to-cyan-950 text-white overflow-hidden">
+      {/* Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative z-10 text-center py-16"
+      >
+        <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-cyan-300 via-sky-200 to-blue-400 bg-clip-text text-transparent drop-shadow-lg">
+          Животни во Вода
+        </h1>
+        <p className="text-lg text-cyan-100 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+          Откријте го светот на водните животни и нивната уникатна разновидност.
+        </p>
+      </motion.div>
 
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 drop-shadow-sm">
-        🌊 Животни во Вода
-      </h1>
+      {/* Animated Divider */}
+      <motion.div
+        className="max-w-6xl mx-auto h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent my-12"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
 
-      {/* Search */}
-      <div className="max-w-md mx-auto mb-12">
+      {/* Search Bar */}
+      <div className="relative z-10 max-w-md mx-auto mb-12">
         <Input
           type="text"
-          placeholder="Пребарај водни животни..."
+          placeholder="🔍 Пребарај животни во вода..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="backdrop-blur-md bg-white/40 border border-blue-200/50 shadow-lg rounded-2xl"
+          className="backdrop-blur-md bg-blue-800/30 border border-cyan-400/50 text-white placeholder:text-cyan-200 shadow-lg rounded-2xl focus:ring-2 focus:ring-sky-400"
         />
       </div>
 
-      {/* Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+      {/* Animated Divider */}
+      <motion.div
+        className="max-w-6xl mx-auto h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent my-12"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
+
+      {/* Cards Grid */}
+      <div className="relative z-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto px-6 pb-20">
         {filtered.map((animal, index) => (
           <AnimalCard
             key={animal._id}
             animal={animal}
             index={index}
-            gradient="bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500"
-            textColor="text-blue-800"
-            buttonGradient="bg-gradient-to-r from-cyan-500 to-blue-600"
+            gradient="bg-gradient-to-r from-sky-600 via-cyan-500 to-blue-400"
+            textColor="text-white"
+            buttonGradient="bg-gradient-to-r from-cyan-500 to-sky-600"
           />
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center text-gray-600 mt-12">
+        <p className="relative z-10 text-center text-cyan-200 mt-12">
           Нема додадени животни во оваа категорија.
         </p>
       )}

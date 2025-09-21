@@ -7,12 +7,11 @@ import { Leaf, Ruler, MapPin, BookOpen, Play } from "lucide-react";
 export default function AnimalDetails() {
   const { id } = useParams();
   const { get, del } = useApi();
-  const getRef = useRef(get); // keep a stable reference to get()
+  const getRef = useRef(get);
   const [animal, setAnimal] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // keep ref updated if useApi returns a new function (but don't retrigger effect)
   useEffect(() => {
     getRef.current = get;
   }, [get]);
@@ -30,68 +29,64 @@ export default function AnimalDetails() {
         const data = await res.json();
         setAnimal(data);
       } catch (err) {
-        if (err.name !== "AbortError") {
-          setAnimal(null);
-        }
+        if (err.name !== "AbortError") setAnimal(null);
       } finally {
         if (!ctrl.signal.aborted) setLoading(false);
       }
     })();
 
     return () => ctrl.abort();
-    // IMPORTANT: only depend on id to avoid loops
   }, [id]);
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this animal?")) return;
     const res = await del(`/api/animals/${id}`);
-    if (res.ok) {
-      navigate("/");
-    } else {
+    if (res.ok) navigate("/");
+    else {
       const errMsg = await res.json().catch(() => ({}));
       alert(errMsg.message || "Failed to delete");
     }
   };
 
-  // helper: decide if a video is embeddable (iframe) or file (mp4/webm)
   const videoRenderers = useMemo(() => {
     const isEmbed = (url = "") =>
       /^(https?:)?\/\/(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com)/i.test(url);
-
-    const isFile = (url = "") => /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) || url.startsWith("/uploads/");
-
+    const isFile = (url = "") =>
+      /\.(mp4|webm|ogg)(\?|#|$)/i.test(url) || url.startsWith("/uploads/");
     return { isEmbed, isFile };
   }, []);
 
-  if (loading) return <p className="p-6">Loading...</p>;
-  if (!animal) return <p className="p-6 text-red-600">Animal not found.</p>;
+  if (loading) return <p className="p-6 text-gray-400">Loading...</p>;
+  if (!animal) return <p className="p-6 text-red-400">Animal not found.</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-lime-100">
+    <div className="min-h-screen bg-gray-900 text-gray-100">
       {/* Hero Section */}
       <div
         className="relative h-[420px] w-full bg-cover bg-center flex items-center"
         style={{ backgroundImage: `url(/public/kopno-bg.jpg)` }}
       >
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/60" />
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="relative z-10 container mx-auto px-6"
         >
-          <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 max-w-xl shadow-lg">
-            <h1 className="text-5xl font-bold text-white drop-shadow-md mb-2">
+          <div className="bg-gray-800/80 rounded-2xl p-10 max-w-3xl shadow-xl">
+            <h1 className="text-6xl font-extrabold text-white mb-5 leading-tight">
               {animal.name}
             </h1>
-            <p className="text-lg text-lime-100">{animal.summary}</p>
+            <p className="text-xl text-gray-300 leading-relaxed font-light">
+              {animal.summary}
+            </p>
           </div>
         </motion.div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 pt-10 space-y-16">
-        {/* Metadata Cards */}
+      <div className="container mx-auto px-4 py-12 space-y-20">
+        {/* Metadata */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -108,77 +103,86 @@ export default function AnimalDetails() {
           ].map(({ label, value, icon: Icon, color }, idx) => (
             <motion.div
               key={idx}
-              className={`p-5 rounded-xl bg-white shadow-md border-t-4 border-${color}-400 
-                          hover:shadow-xl hover:-translate-y-1 transition`}
+              className="p-8 rounded-2xl bg-gray-800 shadow-md border border-gray-700 
+                         hover:shadow-xl hover:-translate-y-1 transition"
             >
               <div className="flex items-center gap-3 mb-2">
-                <Icon className={`w-6 h-6 text-${color}-600`} />
-                <h5 className="uppercase text-sm font-semibold">{label}</h5>
+                <Icon className={`w-6 h-6 text-${color}-400`} />
+                <h5 className="uppercase text-xs tracking-wider font-semibold text-gray-400">
+                  {label}
+                </h5>
               </div>
-              <p className="text-xl text-gray-800">{value || "—"}</p>
+              <p className="text-2xl font-semibold text-gray-100 leading-snug">
+                {value || "—"}
+              </p>
             </motion.div>
           ))}
         </motion.div>
 
+        <hr className="border-gray-700/50" />
+
         {/* About */}
-        <section className="bg-emerald-50 rounded-xl p-6 border-l-4 border-emerald-400 shadow-inner">
-          <h2 className="text-3xl font-semibold mb-4 text-emerald-800">About</h2>
-          <p className="text-gray-700 leading-relaxed">{animal.description}</p>
+        <section className="bg-gray-800 rounded-2xl p-8 shadow-md border border-gray-700">
+          <h2 className="text-3xl font-bold mb-5 text-emerald-400">About</h2>
+          <p className="text-lg leading-relaxed font-light text-gray-300">
+            {animal.description}
+          </p>
         </section>
 
-        {/* Gallery Section */}
+        <hr className="border-gray-700/50" />
+
+        {/* Gallery */}
         {animal.images?.length > 0 && (
-          <section>
-            <h2 className="text-3xl font-semibold mb-6 text-emerald-800">Gallery</h2>
-            <div className="columns-2 md:columns-3 gap-4 space-y-4">
+          <section className="bg-gray-800 rounded-2xl p-8 shadow-md border border-gray-700">
+            <h2 className="text-3xl font-bold mb-6 text-emerald-400">Gallery</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {animal.images.map((img, idx) => (
-                <img
+                <motion.img
                   key={idx}
                   src={img}
-                  alt=""
-                  className="w-full rounded-xl shadow-md hover:scale-105 transition-transform"
+                  alt={animal.name}
+                  whileHover={{ scale: 1.03 }}
+                  className="w-full rounded-xl shadow-md border border-gray-700"
                 />
               ))}
             </div>
           </section>
         )}
 
+        {animal.videos?.length > 0 && <hr className="border-gray-700/50" />}
+
         {/* Videos */}
         {animal.videos?.length > 0 && (
-          <section>
-            <h2 className="text-3xl font-semibold mb-6 flex items-center gap-2 text-emerald-800">
+          <section className="bg-gray-800 rounded-2xl p-8 shadow-md border border-gray-700">
+            <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 text-emerald-400">
               <Play className="w-6 h-6" /> Videos
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               {animal.videos.map((vid, idx) => {
-                if (videoRenderers.isEmbed(vid)) {
+                if (videoRenderers.isEmbed(vid))
                   return (
-                    <div key={idx} className="aspect-video rounded-xl overflow-hidden shadow-md">
-                      <iframe
-                        src={vid}
-                        title={`Video ${idx}`}
-                        className="w-full h-full"
-                        allowFullScreen
-                      />
+                    <div
+                      key={idx}
+                      className="aspect-video rounded-xl overflow-hidden shadow-md border border-gray-700 bg-gray-900"
+                    >
+                      <iframe src={vid} className="w-full h-full" allowFullScreen />
                     </div>
                   );
-                }
-                if (videoRenderers.isFile(vid)) {
+                if (videoRenderers.isFile(vid))
                   return (
-                    <div key={idx} className="aspect-video rounded-xl overflow-hidden shadow-md">
+                    <div
+                      key={idx}
+                      className="aspect-video rounded-xl overflow-hidden shadow-md border border-gray-700 bg-gray-900"
+                    >
                       <video src={vid} controls className="w-full h-full" />
                     </div>
                   );
-                }
-                // fallback (try iframe)
                 return (
-                  <div key={idx} className="aspect-video rounded-xl overflow-hidden shadow-md">
-                    <iframe
-                      src={vid}
-                      title={`Video ${idx}`}
-                      className="w-full h-full"
-                      allowFullScreen
-                    />
+                  <div
+                    key={idx}
+                    className="aspect-video rounded-xl overflow-hidden shadow-md border border-gray-700 bg-gray-900"
+                  >
+                    <iframe src={vid} className="w-full h-full" allowFullScreen />
                   </div>
                 );
               })}
@@ -186,29 +190,31 @@ export default function AnimalDetails() {
           </section>
         )}
 
+        {animal.publications?.length > 0 && <hr className="border-gray-700/50" />}
+
         {/* Publications */}
         {animal.publications?.length > 0 && (
-          <section>
-            <h2 className="text-3xl font-semibold mb-6 flex items-center gap-2 text-emerald-800">
+          <section className="bg-gray-800 rounded-2xl p-8 shadow-md border border-gray-700">
+            <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 text-emerald-400">
               <BookOpen className="w-6 h-6" /> Publications
             </h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-5">
               {animal.publications.map((pub, idx) => (
                 <div
                   key={idx}
-                  className="p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition"
+                  className="p-6 bg-gray-900 rounded-xl shadow-md border border-gray-700 hover:shadow-lg transition"
                 >
                   {pub.url ? (
                     <a
                       href={pub.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-lg text-emerald-300 hover:underline font-medium"
                     >
                       {pub.title}
                     </a>
                   ) : (
-                    <p>{pub.title}</p>
+                    <p className="text-gray-200 text-lg">{pub.title}</p>
                   )}
                 </div>
               ))}
@@ -216,17 +222,19 @@ export default function AnimalDetails() {
           </section>
         )}
 
+        <hr className="border-gray-700/50" />
+
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex gap-4 justify-end">
           <button
             onClick={() => navigate(`/animals/${id}/edit`)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-md shadow-md"
+            className="px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-md transition text-sm uppercase tracking-wide"
           >
             Edit
           </button>
           <button
             onClick={handleDelete}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-md shadow-md"
+            className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md transition text-sm uppercase tracking-wide"
           >
             Delete
           </button>
