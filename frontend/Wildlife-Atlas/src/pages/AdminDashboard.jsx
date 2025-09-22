@@ -16,7 +16,7 @@ const HABITATS = [
 ];
 
 export default function AdminDashboard() {
-  const { get, post, del } = useApi();
+  const { get, post, put, del } = useApi();
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,6 +35,8 @@ export default function AdminDashboard() {
     publications: "",
     featured: true,
   });
+
+  const [editingId, setEditingId] = useState(null);
 
   const [cardFile, setCardFile] = useState(null);
   const [cardPreview, setCardPreview] = useState("");
@@ -92,6 +94,70 @@ export default function AdminDashboard() {
     return "";
   }
 
+  function resetForm() {
+    setForm({
+      name: "",
+      type: "",
+      size: "",
+      habitat: "",
+      family: "",
+      lifespan: "",
+      diet: "",
+      description: "",
+      summary: "",
+      publications: "",
+      featured: true,
+    });
+    setEditingId(null);
+    setCardFile(null);
+    setCardPreview("");
+    setImageFiles([]);
+    setImagePreviews([]);
+    setVideoFiles([]);
+    setVideoNames([]);
+  }
+
+  function onEdit(animal) {
+    const publications = animal.publications 
+      ? animal.publications.map(p => `${p.title}${p.url ? '|' + p.url : ''}`).join('\n')
+      : '';
+    
+    setForm({
+      name: animal.name || "",
+      type: animal.type || "",
+      size: animal.size || "",
+      habitat: animal.habitat || "",
+      family: animal.family || "",
+      lifespan: animal.lifespan || "",
+      diet: animal.diet || "",
+      description: animal.description || "",
+      summary: animal.summary || "",
+      publications: publications,
+      featured: animal.featured !== false,
+    });
+    
+    setEditingId(animal._id);
+    
+    // Set existing card image preview if available
+    if (animal.cardImage) {
+      const imgSrc = animal.cardImage.startsWith("http")
+        ? animal.cardImage
+        : `${API}${animal.cardImage}`;
+      setCardPreview(imgSrc);
+    }
+    
+    // Clear file inputs since we can't pre-populate file inputs
+    setCardFile(null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    setVideoFiles([]);
+    setVideoNames([]);
+  }
+
+  function onCancelEdit() {
+    resetForm();
+  }
+
   async function onCreate(e) {
     e.preventDefault();
     setError("");
@@ -131,33 +197,20 @@ export default function AdminDashboard() {
       imageFiles.forEach((f) => fd.append("images", f));
       videoFiles.forEach((f) => fd.append("videos", f));
 
-      const res = await post("/api/animals", fd);
+      let res;
+      if (editingId) {
+        res = await put(`/api/animals/${editingId}`, fd);
+      } else {
+        res = await post("/api/animals", fd);
+      }
+
       if (!res.ok) {
         const msg = await safeMessage(res);
-        throw new Error(msg || `Create failed (${res.status})`);
+        throw new Error(msg || `${editingId ? 'Update' : 'Create'} failed (${res.status})`);
       }
 
       await fetchAnimals();
-
-      setForm({
-        name: "",
-        type: "",
-        size: "",
-        habitat: "",
-        family: "",
-        lifespan: "",
-        diet: "",
-        description: "",
-        summary: "",
-        publications: "",
-        featured: true,
-      });
-      setCardFile(null);
-      setCardPreview("");
-      setImageFiles([]);
-      setImagePreviews([]);
-      setVideoFiles([]);
-      setVideoNames([]);
+      resetForm();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -213,9 +266,20 @@ export default function AdminDashboard() {
         {/* Add Animal Form */}
         <Card className="shadow-lg hover:shadow-xl transition rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6 space-y-8">
-            <h2 className="flex items-center gap-2 text-2xl font-semibold text-slate-800 bg-gradient-to-r from-sky-100 to-transparent px-3 py-2 rounded-lg">
-              <Info className="w-6 h-6 text-sky-600" /> Add New Animal
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-2xl font-semibold text-slate-800 bg-gradient-to-r from-sky-100 to-transparent px-3 py-2 rounded-lg">
+                <Info className="w-6 h-6 text-sky-600" /> {editingId ? 'Edit Animal' : 'Add New Animal'}
+              </h2>
+              {editingId && (
+                <Button 
+                  onClick={onCancelEdit}
+                  variant="outline"
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Cancel Edit
+                </Button>
+              )}
+            </div>
 
             {error && (
               <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -317,7 +381,7 @@ export default function AdminDashboard() {
                   disabled={loading}
                   className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-90 shadow"
                 >
-                  {loading ? "Saving…" : "Add Animal"}
+                  {loading ? (editingId ? "Updating…" : "Saving…") : (editingId ? "Update Animal" : "Add Animal")}
                 </Button>
               </div>
             </form>
@@ -366,7 +430,7 @@ export default function AdminDashboard() {
                     : null;
 
                   return (
-                    <tr key={a._id} className={`${idx % 2 === 0 ? "bg-slate-50/70" : "bg-white/70"} border-b hover:bg-sky-50 transition`}>
+                    <tr key={a._id} className={`${idx % 2 === 0 ? "bg-slate-50/70" : "bg-white/70"} border-b hover:bg-sky-50 transition ${editingId === a._id ? "bg-sky-100/70" : ""}`}>
                       <td className="p-3">
                         {imgSrc ? (
                           <img src={imgSrc} alt="" className="w-16 h-12 object-cover rounded border" />
@@ -384,13 +448,24 @@ export default function AdminDashboard() {
                       <td className="p-3">{a.diet || "—"}</td>
                       <td className="p-3">{a.featured === false ? "—" : "⭐"}</td>
                       <td className="p-3">
-                        <Button
-                          variant="destructive"
-                          onClick={() => onDelete(a._id)}
-                          className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90"
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => onEdit(a)}
+                            variant="outline"
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:opacity-90 border-0"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => onDelete(a._id)}
+                            className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
