@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApi } from "../services/api";
-import { Info, Image as ImageIcon, Video, BookOpen, Star } from "lucide-react";
+import { Info, Image as ImageIcon, Video, BookOpen, Star, Plus, Edit3, Trash2, BarChart3, X } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -74,16 +74,42 @@ export default function AdminDashboard() {
     setCardPreview(f ? URL.createObjectURL(f) : "");
   }
 
-  function onChangeImageFiles(e) {
-    const files = Array.from(e.target.files || []);
-    setImageFiles(files);
-    setImagePreviews(files.map((f) => URL.createObjectURL(f)));
+  // Modified to add individual images
+  function onAddImages(e) {
+    const newFiles = Array.from(e.target.files || []);
+    if (newFiles.length > 0) {
+      setImageFiles(prev => [...prev, ...newFiles]);
+      setImagePreviews(prev => [...prev, ...newFiles.map(f => URL.createObjectURL(f))]);
+      // Reset the input so the same file can be selected again if needed
+      e.target.value = '';
+    }
   }
 
-  function onChangeVideoFiles(e) {
-    const files = Array.from(e.target.files || []);
-    setVideoFiles(files);
-    setVideoNames(files.map((f) => f.name));
+  // Function to remove individual images
+  function removeImage(index) {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      // Clean up the URL object
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  // Modified to add individual videos
+  function onAddVideos(e) {
+    const newFiles = Array.from(e.target.files || []);
+    if (newFiles.length > 0) {
+      setVideoFiles(prev => [...prev, ...newFiles]);
+      setVideoNames(prev => [...prev, ...newFiles.map(f => f.name)]);
+      // Reset the input so the same file can be selected again if needed
+      e.target.value = '';
+    }
+  }
+
+  // Function to remove individual videos
+  function removeVideo(index) {
+    setVideoFiles(prev => prev.filter((_, i) => i !== index));
+    setVideoNames(prev => prev.filter((_, i) => i !== index));
   }
 
   function validate() {
@@ -112,6 +138,8 @@ export default function AdminDashboard() {
     setCardFile(null);
     setCardPreview("");
     setImageFiles([]);
+    // Clean up preview URLs
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
     setImagePreviews([]);
     setVideoFiles([]);
     setVideoNames([]);
@@ -149,6 +177,8 @@ export default function AdminDashboard() {
     // Clear file inputs since we can't pre-populate file inputs
     setCardFile(null);
     setImageFiles([]);
+    // Clean up existing preview URLs
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
     setImagePreviews([]);
     setVideoFiles([]);
     setVideoNames([]);
@@ -238,241 +268,550 @@ export default function AdminDashboard() {
   const habitatsCovered = new Set(list.map((a) => a.habitat)).size;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200 p-6">
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent drop-shadow-md">
-            Admin Dashboard
-          </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40 relative overflow-hidden">
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0">
+        {/* Primary gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/20 via-purple-50/30 to-cyan-100/20" />
+        
+        {/* Floating geometric elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-indigo-200/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/4 right-0 w-80 h-80 bg-gradient-to-br from-cyan-200/25 to-blue-300/20 rounded-full blur-3xl transform translate-x-40 animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-br from-purple-200/30 to-pink-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-indigo-100/20 to-cyan-200/15 rounded-full blur-2xl transform -translate-x-32 -translate-y-32" />
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgb(99 102 241) 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }} />
+        
+        {/* Noise texture for depth */}
+        <div className="absolute inset-0 opacity-[0.015] mix-blend-multiply" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }} />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-12">
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/40 backdrop-blur-md rounded-full border border-white/60 shadow-xl shadow-indigo-500/10">
+            <BarChart3 className="w-6 h-6 text-indigo-600" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+          </div>
+          <p className="text-slate-700 text-lg font-light max-w-2xl mx-auto">
+            Manage your wildlife collection with powerful tools and intuitive controls
+          </p>
         </div>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
-            <p className="text-sm text-gray-500">Total Animals</p>
-            <p className="text-2xl font-bold text-slate-800">{totalAnimals}</p>
-          </div>
-          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
-            <p className="text-sm text-gray-500">Featured</p>
-            <p className="text-2xl font-bold text-yellow-600">{featuredCount}</p>
-          </div>
-          <div className="rounded-2xl bg-white/70 backdrop-blur-sm shadow-md p-4 text-center">
-            <p className="text-sm text-gray-500">Habitats Covered</p>
-            <p className="text-2xl font-bold text-sky-600">{habitatsCovered}</p>
-          </div>
-        </div>
-
-        {/* Add Animal Form */}
-        <Card className="shadow-lg hover:shadow-xl transition rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-6 space-y-8">
-            <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-2xl font-semibold text-slate-800 bg-gradient-to-r from-sky-100 to-transparent px-3 py-2 rounded-lg">
-                <Info className="w-6 h-6 text-sky-600" /> {editingId ? 'Edit Animal' : 'Add New Animal'}
-              </h2>
-              {editingId && (
-                <Button 
-                  onClick={onCancelEdit}
-                  variant="outline"
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  Cancel Edit
-                </Button>
-              )}
+        {/* Premium Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Total Animals",
+              value: totalAnimals,
+              icon: Info,
+              gradient: "from-blue-500 to-cyan-500",
+              bgGradient: "from-blue-50 to-cyan-50",
+              shadowColor: "shadow-blue-500/20"
+            },
+            {
+              title: "Featured",
+              value: featuredCount,
+              icon: Star,
+              gradient: "from-amber-500 to-orange-500",
+              bgGradient: "from-amber-50 to-orange-50",
+              shadowColor: "shadow-amber-500/20"
+            },
+            {
+              title: "Habitats Covered",
+              value: habitatsCovered,
+              icon: BarChart3,
+              gradient: "from-emerald-500 to-teal-500",
+              bgGradient: "from-emerald-50 to-teal-50",
+              shadowColor: "shadow-emerald-500/20"
+            }
+          ].map(({ title, value, icon: Icon, gradient, bgGradient, shadowColor }, idx) => (
+            <div
+              key={idx}
+              className={`relative group p-8 rounded-3xl bg-white/30 backdrop-blur-md 
+                         border border-white/50 shadow-xl ${shadowColor} hover:shadow-2xl 
+                         hover:bg-white/40 transition-all duration-500 hover:scale-105`}
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/20 rounded-full blur-xl transform -translate-x-4 translate-y-4" />
+              </div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <div className={`p-4 rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}>
+                    <Icon className="w-8 h-8 text-white drop-shadow-sm" />
+                  </div>
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-white/60 to-white/40 group-hover:scale-125 transition-all duration-300" />
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{title}</p>
+                  <p className="text-4xl font-bold text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
+                    {value}
+                  </p>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
 
-            {error && (
-              <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={onCreate} className="space-y-8">
-              {/* Section: Basic Info */}
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
-                  <Info className="w-5 h-5 text-sky-500" /> Basic Info
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input name="name" value={form.name} onChange={onChange} placeholder="Name" required />
-                  <select
-                    name="habitat"
-                    value={form.habitat}
-                    onChange={onChangeHabitat}
-                    className="h-10 rounded-md border px-3 text-sm"
-                    required
-                  >
-                    {HABITATS.map((h) => (
-                      <option key={h.value} value={h.value} disabled={h.value === ""}>
-                        {h.label}
-                      </option>
-                    ))}
-                  </select>
-                  <Input name="type" value={form.type} onChange={onChange} placeholder="Type (optional)" />
-                  <Input name="size" value={form.size} onChange={onChange} placeholder="Size (optional)" />
-                  <Input name="family" value={form.family} onChange={onChange} placeholder="Family (optional)" />
-                  <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan (optional)" />
-                  <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet (optional)" />
-                  <Input name="description" value={form.description} onChange={onChange} placeholder="Description (optional)" />
-                </div>
-              </div>
-
-              {/* Section: Media */}
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
-                  <ImageIcon className="w-5 h-5 text-sky-500" /> Media Uploads
-                </h3>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Card image</label>
-                  <input type="file" accept="image/*" onChange={onChangeCardFile} className="block w-full rounded-md border p-2 text-sm" />
-                  {cardPreview && <img src={cardPreview} alt="preview" className="mt-2 h-40 w-auto rounded-md border object-cover" />}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Additional Images</label>
-                  <input type="file" accept="image/*" multiple onChange={onChangeImageFiles} className="block w-full rounded-md border p-2 text-sm" />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {imagePreviews.map((src, i) => (
-                      <img key={i} src={src} alt={`img-${i}`} className="h-24 w-24 object-cover rounded border" />
-                    ))}
+        {/* Enhanced Add Animal Form */}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+          <Card className="relative bg-white/25 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl hover:shadow-3xl hover:bg-white/30 transition-all duration-500">
+            <CardContent className="p-10 space-y-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+                    {editingId ? <Edit3 className="w-8 h-8 text-white" /> : <Plus className="w-8 h-8 text-white" />}
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-800">
+                      {editingId ? 'Edit Animal' : 'Add New Animal'}
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      {editingId ? 'Update existing animal details' : 'Create a new wildlife entry'}
+                    </p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                    <Video className="w-4 h-4 text-sky-500" /> Videos
-                  </label>
-                  <input type="file" accept="video/*" multiple onChange={onChangeVideoFiles} className="block w-full rounded-md border p-2 text-sm" />
-                  <ul className="mt-2 text-sm text-gray-600 list-disc pl-5">
-                    {videoNames.map((name, i) => (
-                      <li key={i}>{name}</li>
-                    ))}
-                  </ul>
+                {editingId && (
+                  <Button 
+                    onClick={onCancelEdit}
+                    className="px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 border-0 rounded-2xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    Cancel Edit
+                  </Button>
+                )}
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-md">
+                  <p className="text-red-700 font-medium">{error}</p>
                 </div>
-              </div>
+              )}
 
-              {/* Section: Extra Details */}
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 text-lg font-medium text-slate-700 border-b pb-1">
-                  <BookOpen className="w-5 h-5 text-sky-500" /> Extra Details
-                </h3>
-                <textarea
-                  name="publications"
-                  value={form.publications}
-                  onChange={onChange}
-                  placeholder="Publications (Title|URL per line)"
-                  className="min-h-[90px] rounded-md border p-2 text-sm w-full"
-                />
-                <textarea
-                  name="summary"
-                  value={form.summary}
-                  onChange={onChange}
-                  placeholder="Short summary (1–2 lines)"
-                  className="min-h-[90px] rounded-md border p-2 text-sm w-full"
-                />
-                <label className="flex items-center gap-2 text-sm">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  <input type="checkbox" name="featured" checked={form.featured} onChange={onChange} />
-                  Show on habitat cards
-                </label>
-              </div>
-
-              <div>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-90 shadow"
-                >
-                  {loading ? (editingId ? "Updating…" : "Saving…") : (editingId ? "Update Animal" : "Add Animal")}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Animals Table */}
-        <div className="overflow-x-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition border border-slate-200">
-          <table className="min-w-full text-sm">
-            <thead className="sticky top-0 bg-slate-100 shadow">
-              <tr className="text-left border-b">
-                <th className="p-3">Card</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Habitat</th>
-                <th className="p-3">Diet</th>
-                <th className="p-3">Featured</th>
-                <th className="p-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="p-6 text-center">
-                    <div className="animate-pulse flex justify-center gap-4">
-                      <div className="w-16 h-12 bg-slate-200 rounded" />
-                      <div className="w-32 h-6 bg-slate-200 rounded" />
-                      <div className="w-24 h-6 bg-slate-200 rounded" />
+              <form onSubmit={onCreate} className="space-y-10">
+                {/* Section: Basic Info */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100">
+                      <Info className="w-5 h-5 text-blue-600" />
                     </div>
-                  </td>
-                </tr>
-              ) : list.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-6 text-center text-gray-500">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-4xl">🦊</span>
-                      <p>No animals yet. Add your first one!</p>
+                    <h3 className="text-xl font-semibold text-gray-800">Basic Information</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Animal Name *</label>
+                      <Input 
+                        name="name" 
+                        value={form.name} 
+                        onChange={onChange} 
+                        placeholder="Enter animal name" 
+                        required 
+                        className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm"
+                      />
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                list.map((a, idx) => {
-                  const imgSrc = a.cardImage
-                    ? a.cardImage.startsWith("http")
-                      ? a.cardImage
-                      : `${API}${a.cardImage}`
-                    : null;
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Habitat *</label>
+                      <select
+                        name="habitat"
+                        value={form.habitat}
+                        onChange={onChangeHabitat}
+                        className="h-12 rounded-xl border border-gray-200 px-4 text-sm bg-white/40 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-full"
+                        required
+                      >
+                        {HABITATS.map((h) => (
+                          <option key={h.value} value={h.value} disabled={h.value === ""}>
+                            {h.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <Input name="type" value={form.type} onChange={onChange} placeholder="Animal type" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <Input name="size" value={form.size} onChange={onChange} placeholder="Size" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <Input name="family" value={form.family} onChange={onChange} placeholder="Family" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <Input name="description" value={form.description} onChange={onChange} placeholder="Description" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                  </div>
+                </div>
 
-                  return (
-                    <tr key={a._id} className={`${idx % 2 === 0 ? "bg-slate-50/70" : "bg-white/70"} border-b hover:bg-sky-50 transition ${editingId === a._id ? "bg-sky-100/70" : ""}`}>
-                      <td className="p-3">
-                        {imgSrc ? (
-                          <img src={imgSrc} alt="" className="w-16 h-12 object-cover rounded border" />
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="p-3 font-medium">
-                        <div className="flex flex-col">
-                          <span>{a.name}</span>
-                          {a.summary ? <span className="text-xs text-gray-500 line-clamp-2">{a.summary}</span> : null}
+                {/* Section: Media - ENHANCED VERSION */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100">
+                      <ImageIcon className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800">Media Uploads</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Card Image */}
+                    <div className="space-y-4">
+                      <label className="text-sm font-semibold text-gray-700">Main Card Image</label>
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-indigo-400 transition-colors bg-white/20 backdrop-blur-sm">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={onChangeCardFile} 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        />
+                        <div className="text-center">
+                          <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-sm text-gray-600 font-medium">Click to upload card image</p>
                         </div>
-                      </td>
-                      <td className="p-3">{a.habitat}</td>
-                      <td className="p-3">{a.diet || "—"}</td>
-                      <td className="p-3">{a.featured === false ? "—" : "⭐"}</td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => onEdit(a)}
-                            variant="outline"
-                            size="sm"
-                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:opacity-90 border-0"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => onDelete(a._id)}
-                            className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:opacity-90"
-                          >
-                            Delete
-                          </Button>
+                      </div>
+                      {cardPreview && (
+                        <div className="relative group">
+                          <img src={cardPreview} alt="preview" className="w-full h-48 rounded-2xl object-cover shadow-lg border border-gray-200" />
+                          <div className="absolute inset-0 bg-black/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Gallery Images - ENHANCED */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold text-gray-700">Gallery Images</label>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          {imageFiles.length} image{imageFiles.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      
+                      {/* Add Images Button */}
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-purple-400 transition-colors bg-white/20 backdrop-blur-sm">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          multiple 
+                          onChange={onAddImages} 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        />
+                        <div className="text-center">
+                          <Plus className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-sm text-gray-600 font-medium">Add more gallery images</p>
+                          <p className="text-xs text-gray-500 mt-1">Click to select multiple images</p>
+                        </div>
+                      </div>
+                      
+                      {/* Image Previews with Remove Option */}
+                      {imagePreviews.length > 0 && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {imagePreviews.map((src, i) => (
+                            <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <img src={src} alt={`img-${i}`} className="w-16 h-16 object-cover rounded-lg shadow-md flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-700 truncate">
+                                    Image {i + 1}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {imageFiles[i]?.name}
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeImage(i)}
+                                  className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg border-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                  size="sm"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Videos - ENHANCED */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold text-gray-700">Videos</label>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          {videoFiles.length} video{videoFiles.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      
+                      {/* Add Videos Button */}
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-cyan-400 transition-colors bg-white/20 backdrop-blur-sm">
+                        <input 
+                          type="file" 
+                          accept="video/*" 
+                          multiple 
+                          onChange={onAddVideos} 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        />
+                        <div className="text-center">
+                          <Plus className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-sm text-gray-600 font-medium">Add more videos</p>
+                          <p className="text-xs text-gray-500 mt-1">Click to select multiple videos</p>
+                        </div>
+                      </div>
+                      
+                      {/* Video List with Remove Option */}
+                      {videoNames.length > 0 && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {videoNames.map((name, i) => (
+                            <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Video className="w-6 h-6 text-cyan-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-700 truncate">{name}</p>
+                                  <p className="text-xs text-gray-500">Video {i + 1}</p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeVideo(i)}
+                                  className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg border-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                  size="sm"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Extra Details */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100">
+                      <BookOpen className="w-5 h-5 text-green-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800">Additional Details</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Publications</label>
+                      <textarea
+                        name="publications"
+                        value={form.publications}
+                        onChange={onChange}
+                        placeholder="Publications (Title|URL per line)"
+                        className="min-h-[120px] rounded-xl border border-gray-200 p-4 text-sm w-full bg-white/30 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Summary</label>
+                      <textarea
+                        name="summary"
+                        value={form.summary}
+                        onChange={onChange}
+                        placeholder="Short summary (1–2 lines)"
+                        className="min-h-[120px] rounded-xl border border-gray-200 p-4 text-sm w-full bg-white/30 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
+                    <Star className="w-5 h-5 text-yellow-600" />
+                    <label className="flex items-center gap-3 text-sm font-semibold text-gray-700 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        name="featured" 
+                        checked={form.featured} 
+                        onChange={onChange}
+                        className="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500"
+                      />
+                      Show on habitat cards (Featured)
+                    </label>
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="px-12 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 text-white hover:from-indigo-600 hover:via-purple-600 hover:to-cyan-600 rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-0"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {editingId ? "Updating..." : "Saving..."}
+                      </div>
+                    ) : (
+                      editingId ? "Update Animal" : "Add New Animal"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Enhanced Animals Table */}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+          <div className="relative bg-white/25 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden hover:bg-white/30 transition-all duration-500">
+            <div className="p-8 border-b border-white/30 bg-white/20 backdrop-blur-md">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100">
+                  <BarChart3 className="w-6 h-6 text-indigo-600" />
+                </div>
+                Animals Collection
+              </h2>
+              <p className="text-gray-600 mt-1">Manage your wildlife database</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-white/20 backdrop-blur-md border-b border-white/30">
+                  <tr className="text-left">
+                    <th className="p-6 font-semibold text-gray-700">Image</th>
+                    <th className="p-6 font-semibold text-gray-700">Animal</th>
+                    <th className="p-6 font-semibold text-gray-700">Habitat</th>
+                    <th className="p-6 font-semibold text-gray-700">Diet</th>
+                    <th className="p-6 font-semibold text-gray-700">Status</th>
+                    <th className="p-6 font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="p-12 text-center">
+                        <div className="flex justify-center items-center gap-4">
+                          <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+                          <p className="text-gray-600 font-medium">Loading animals...</p>
                         </div>
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  ) : list.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-12 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <span className="text-4xl">🦊</span>
+                          </div>
+                          <div>
+                            <p className="text-xl font-semibold text-gray-700 mb-2">No animals yet</p>
+                            <p className="text-gray-500">Start building your wildlife collection!</p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    list.map((a, idx) => {
+                      const imgSrc = a.cardImage
+                        ? a.cardImage.startsWith("http")
+                          ? a.cardImage
+                          : `${API}${a.cardImage}`
+                        : null;
+
+                      return (
+                        <tr 
+                          key={a._id} 
+                          className={`border-b border-gray-100 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-300 ${
+                            editingId === a._id ? "bg-gradient-to-r from-indigo-50 to-purple-50 ring-2 ring-indigo-200 ring-inset" : ""
+                          }`}
+                        >
+                          <td className="p-6">
+                            <div className="relative group">
+                              {imgSrc ? (
+                                <div className="relative">
+                                  <img 
+                                    src={imgSrc} 
+                                    alt="" 
+                                    className="w-20 h-16 object-cover rounded-xl border border-gray-200 shadow-md group-hover:shadow-lg transition-shadow duration-300" 
+                                  />
+                                  <div className="absolute inset-0 bg-black/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                </div>
+                              ) : (
+                                <div className="w-20 h-16 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center border border-gray-200">
+                                  <ImageIcon className="w-6 h-6 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-6">
+                            <div className="space-y-1">
+                              <p className="font-semibold text-gray-800 text-lg">{a.name}</p>
+                              {a.summary && (
+                                <p className="text-sm text-gray-600 line-clamp-2 max-w-xs">
+                                  {a.summary}
+                                </p>
+                              )}
+                              {a.type && (
+                                <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                                  {a.type}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-6">
+                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
+                              a.habitat === 'kopno' ? 'bg-green-100 text-green-800' :
+                              a.habitat === 'voda' ? 'bg-blue-100 text-blue-800' :
+                              a.habitat === 'vozduh' ? 'bg-sky-100 text-sky-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              <div className={`w-2 h-2 rounded-full ${
+                                a.habitat === 'kopno' ? 'bg-green-500' :
+                                a.habitat === 'voda' ? 'bg-blue-500' :
+                                a.habitat === 'vozduh' ? 'bg-sky-500' :
+                                'bg-gray-500'
+                              }`} />
+                              {a.habitat || "—"}
+                            </div>
+                          </td>
+                          <td className="p-6">
+                            <p className="text-gray-700 font-medium">{a.diet || "—"}</p>
+                          </td>
+                          <td className="p-6">
+                            {a.featured !== false ? (
+                              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">
+                                <Star className="w-3 h-3 fill-current" />
+                                Featured
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Standard</span>
+                            )}
+                          </td>
+                          <td className="p-6">
+                            <div className="flex gap-3">
+                              <Button
+                                onClick={() => onEdit(a)}
+                                size="sm"
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 rounded-xl font-semibold border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+                              >
+                                <Edit3 className="w-4 h-4 mr-2" />
+                                Edit
+                              </Button>
+                              <Button
+                                onClick={() => onDelete(a._id)}
+                                size="sm"
+                                className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 rounded-xl font-semibold border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
