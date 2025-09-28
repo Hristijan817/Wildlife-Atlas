@@ -45,6 +45,12 @@ export default function AdminDashboard() {
   const [videoFiles, setVideoFiles] = useState([]);
   const [videoNames, setVideoNames] = useState([]);
 
+  // New state for existing media when editing
+  const [existingImages, setExistingImages] = useState([]);
+  const [existingVideos, setExistingVideos] = useState([]);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
+  const [videosToDelete, setVideosToDelete] = useState([]);
+
   async function fetchAnimals() {
     try {
       const res = await get("/api/animals");
@@ -95,6 +101,12 @@ export default function AdminDashboard() {
     });
   }
 
+  // Function to remove existing images (mark for deletion)
+  function removeExistingImage(imagePath) {
+    setImagesToDelete(prev => [...prev, imagePath]);
+    setExistingImages(prev => prev.filter(img => img !== imagePath));
+  }
+
   // Modified to add individual videos
   function onAddVideos(e) {
     const newFiles = Array.from(e.target.files || []);
@@ -110,6 +122,12 @@ export default function AdminDashboard() {
   function removeVideo(index) {
     setVideoFiles(prev => prev.filter((_, i) => i !== index));
     setVideoNames(prev => prev.filter((_, i) => i !== index));
+  }
+
+  // Function to remove existing videos (mark for deletion)
+  function removeExistingVideo(videoPath) {
+    setVideosToDelete(prev => [...prev, videoPath]);
+    setExistingVideos(prev => prev.filter(vid => vid !== videoPath));
   }
 
   function validate() {
@@ -143,6 +161,11 @@ export default function AdminDashboard() {
     setImagePreviews([]);
     setVideoFiles([]);
     setVideoNames([]);
+    // Reset existing media state
+    setExistingImages([]);
+    setExistingVideos([]);
+    setImagesToDelete([]);
+    setVideosToDelete([]);
   }
 
   function onEdit(animal) {
@@ -174,6 +197,10 @@ export default function AdminDashboard() {
       setCardPreview(imgSrc);
     }
     
+    // Load existing images and videos
+    setExistingImages(animal.images || []);
+    setExistingVideos(animal.videos || []);
+    
     // Clear file inputs since we can't pre-populate file inputs
     setCardFile(null);
     setImageFiles([]);
@@ -182,6 +209,10 @@ export default function AdminDashboard() {
     setImagePreviews([]);
     setVideoFiles([]);
     setVideoNames([]);
+    
+    // Reset deletion arrays
+    setImagesToDelete([]);
+    setVideosToDelete([]);
   }
 
   function onCancelEdit() {
@@ -226,6 +257,16 @@ export default function AdminDashboard() {
       if (cardFile) fd.append("cardImage", cardFile);
       imageFiles.forEach((f) => fd.append("images", f));
       videoFiles.forEach((f) => fd.append("videos", f));
+
+      // When editing, send arrays of media to delete
+      if (editingId) {
+        if (imagesToDelete.length > 0) {
+          fd.append("imagesToDelete", JSON.stringify(imagesToDelete));
+        }
+        if (videosToDelete.length > 0) {
+          fd.append("videosToDelete", JSON.stringify(videosToDelete));
+        }
+      }
 
       let res;
       if (editingId) {
@@ -446,7 +487,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Section: Media - ENHANCED VERSION */}
+                {/* Section: Media - ENHANCED WITH EDIT SUPPORT */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
                     <div className="p-2 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100">
@@ -459,7 +500,7 @@ export default function AdminDashboard() {
                     {/* Card Image */}
                     <div className="space-y-4">
                       <label className="text-sm font-semibold text-gray-700">Main Card Image</label>
-                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-indigo-400 transition-colors bg-white/20 backdrop-blur-sm">
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-indigo-400 transition-colors bg-white/20 backdrop-blur-sm min-h-[200px] flex items-center justify-center">
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -479,17 +520,17 @@ export default function AdminDashboard() {
                       )}
                     </div>
                     
-                    {/* Gallery Images - ENHANCED */}
+                    {/* Gallery Images - ENHANCED WITH EDIT SUPPORT */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-semibold text-gray-700">Gallery Images</label>
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {imageFiles.length} image{imageFiles.length !== 1 ? 's' : ''}
+                          {existingImages.length + imageFiles.length} image{(existingImages.length + imageFiles.length) !== 1 ? 's' : ''}
                         </span>
                       </div>
                       
                       {/* Add Images Button */}
-                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-purple-400 transition-colors bg-white/20 backdrop-blur-sm">
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-purple-400 transition-colors bg-white/20 backdrop-blur-sm min-h-[140px] flex items-center justify-center">
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -504,16 +545,56 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       
-                      {/* Image Previews with Remove Option */}
+                      {/* Display existing images when editing */}
+                      {existingImages.length > 0 && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Existing Images</p>
+                          {existingImages.map((imagePath, i) => {
+                            const imgSrc = imagePath.startsWith("http")
+                              ? imagePath
+                              : `${API}${imagePath}`;
+                            return (
+                              <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
+                                <div className="flex items-center gap-3">
+                                  <img 
+                                    src={imgSrc} 
+                                    alt={`existing-img-${i}`} 
+                                    className="w-16 h-16 object-cover rounded-lg shadow-md flex-shrink-0" 
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-700 truncate">
+                                      Existing Image {i + 1}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {imagePath.split('/').pop()}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    onClick={() => removeExistingImage(imagePath)}
+                                    className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg border-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                    size="sm"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* New Image Previews with Remove Option */}
                       {imagePreviews.length > 0 && (
                         <div className="space-y-3 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">New Images</p>
                           {imagePreviews.map((src, i) => (
                             <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
                               <div className="flex items-center gap-3">
                                 <img src={src} alt={`img-${i}`} className="w-16 h-16 object-cover rounded-lg shadow-md flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-gray-700 truncate">
-                                    Image {i + 1}
+                                    New Image {i + 1}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     {imageFiles[i]?.name}
@@ -534,17 +615,17 @@ export default function AdminDashboard() {
                       )}
                     </div>
                     
-                    {/* Videos - ENHANCED */}
+                    {/* Videos - ENHANCED WITH EDIT SUPPORT */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-semibold text-gray-700">Videos</label>
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {videoFiles.length} video{videoFiles.length !== 1 ? 's' : ''}
+                          {existingVideos.length + videoFiles.length} video{(existingVideos.length + videoFiles.length) !== 1 ? 's' : ''}
                         </span>
                       </div>
                       
                       {/* Add Videos Button */}
-                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-cyan-400 transition-colors bg-white/20 backdrop-blur-sm">
+                      <div className="relative p-6 rounded-2xl border-2 border-dashed border-white/40 hover:border-cyan-400 transition-colors bg-white/20 backdrop-blur-sm min-h-[140px] flex items-center justify-center">
                         <input 
                           type="file" 
                           accept="video/*" 
@@ -559,9 +640,42 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       
-                      {/* Video List with Remove Option */}
+                      {/* Display existing videos when editing */}
+                      {existingVideos.length > 0 && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Existing Videos</p>
+                          {existingVideos.map((videoPath, i) => (
+                            <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Video className="w-6 h-6 text-cyan-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-700 truncate">
+                                    Existing Video {i + 1}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {videoPath.split('/').pop()}
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeExistingVideo(videoPath)}
+                                  className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg border-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                  size="sm"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* New Video List with Remove Option */}
                       {videoNames.length > 0 && (
                         <div className="space-y-3 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">New Videos</p>
                           {videoNames.map((name, i) => (
                             <div key={i} className="relative group bg-white/20 p-3 rounded-xl border border-gray-200">
                               <div className="flex items-center gap-3">
@@ -570,7 +684,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-gray-700 truncate">{name}</p>
-                                  <p className="text-xs text-gray-500">Video {i + 1}</p>
+                                  <p className="text-xs text-gray-500">New Video {i + 1}</p>
                                 </div>
                                 <Button
                                   type="button"
