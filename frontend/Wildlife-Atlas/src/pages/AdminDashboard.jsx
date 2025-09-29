@@ -20,6 +20,7 @@ const ANIMAL_TYPES = [
   { value: "mammal", label: "Mammal" },
   { value: "bird", label: "Bird" },
   { value: "fish", label: "Fish" },
+  { value: "reptile", label: "Reptile" },
 ];
 
 const DIET_TYPES = [
