@@ -15,6 +15,20 @@ const HABITATS = [
   { value: "vozduh", label: "Vozduh" },
 ];
 
+const ANIMAL_TYPES = [
+  { value: "", label: "Select Animal Type" },
+  { value: "mammal", label: "Mammal" },
+  { value: "bird", label: "Bird" },
+  { value: "fish", label: "Fish" },
+];
+
+const DIET_TYPES = [
+  { value: "", label: "Select Diet Type" },
+  { value: "omnivore", label: "Omnivore" },
+  { value: "carnivore", label: "Carnivore" },
+  { value: "herbivore", label: "Herbivore" },
+];
+
 export default function AdminDashboard() {
   const { get, post, put, del } = useApi();
 
@@ -25,10 +39,14 @@ export default function AdminDashboard() {
   const [form, setForm] = useState({
     name: "",
     type: "",
-    size: "",
+    sizeMin: "",
+    sizeMax: "",
+    sizeUnit: "cm",
     habitat: "",
     family: "",
-    lifespan: "",
+    lifespanMin: "",
+    lifespanMax: "",
+    lifespanUnit: "years",
     diet: "",
     description: "",
     summary: "",
@@ -142,10 +160,14 @@ export default function AdminDashboard() {
     setForm({
       name: "",
       type: "",
-      size: "",
+      sizeMin: "",
+      sizeMax: "",
+      sizeUnit: "cm",
       habitat: "",
       family: "",
-      lifespan: "",
+      lifespanMin: "",
+      lifespanMax: "",
+      lifespanUnit: "years",
       diet: "",
       description: "",
       summary: "",
@@ -173,13 +195,39 @@ export default function AdminDashboard() {
       ? animal.publications.map(p => `${p.title}${p.url ? '|' + p.url : ''}`).join('\n')
       : '';
     
+    // Parse size range from existing data (e.g., "20-100 cm" or "20cm")
+    let sizeMin = "", sizeMax = "", sizeUnit = "cm";
+    if (animal.size) {
+      const sizeMatch = animal.size.match(/(\d+)(?:-(\d+))?\s*(cm|m|mm)?/i);
+      if (sizeMatch) {
+        sizeMin = sizeMatch[1] || "";
+        sizeMax = sizeMatch[2] || "";
+        sizeUnit = sizeMatch[3] || "cm";
+      }
+    }
+    
+    // Parse lifespan range from existing data (e.g., "2-5 years" or "3 years")
+    let lifespanMin = "", lifespanMax = "", lifespanUnit = "years";
+    if (animal.lifespan) {
+      const lifespanMatch = animal.lifespan.match(/(\d+)(?:-(\d+))?\s*(years?|months?)?/i);
+      if (lifespanMatch) {
+        lifespanMin = lifespanMatch[1] || "";
+        lifespanMax = lifespanMatch[2] || "";
+        lifespanUnit = lifespanMatch[3] || "years";
+      }
+    }
+    
     setForm({
       name: animal.name || "",
       type: animal.type || "",
-      size: animal.size || "",
+      sizeMin,
+      sizeMax,
+      sizeUnit,
       habitat: animal.habitat || "",
       family: animal.family || "",
-      lifespan: animal.lifespan || "",
+      lifespanMin,
+      lifespanMax,
+      lifespanUnit,
       diet: animal.diet || "",
       description: animal.description || "",
       summary: animal.summary || "",
@@ -234,11 +282,37 @@ export default function AdminDashboard() {
       const fd = new FormData();
       fd.append("name", form.name.trim());
       fd.append("habitat", form.habitat);
-      if (form.type) fd.append("type", form.type.trim());
-      if (form.size) fd.append("size", form.size.trim());
+      if (form.type) fd.append("type", form.type);
+      
+      // Build size string from range values
+      if (form.sizeMin || form.sizeMax) {
+        let sizeString = "";
+        if (form.sizeMin && form.sizeMax && form.sizeMin !== form.sizeMax) {
+          sizeString = `${form.sizeMin}-${form.sizeMax} ${form.sizeUnit}`;
+        } else if (form.sizeMin) {
+          sizeString = `${form.sizeMin} ${form.sizeUnit}`;
+        } else if (form.sizeMax) {
+          sizeString = `${form.sizeMax} ${form.sizeUnit}`;
+        }
+        if (sizeString) fd.append("size", sizeString);
+      }
+      
       if (form.family) fd.append("family", form.family.trim());
-      if (form.lifespan) fd.append("lifespan", form.lifespan.trim());
-      if (form.diet) fd.append("diet", form.diet.trim());
+      
+      // Build lifespan string from range values
+      if (form.lifespanMin || form.lifespanMax) {
+        let lifespanString = "";
+        if (form.lifespanMin && form.lifespanMax && form.lifespanMin !== form.lifespanMax) {
+          lifespanString = `${form.lifespanMin}-${form.lifespanMax} ${form.lifespanUnit}`;
+        } else if (form.lifespanMin) {
+          lifespanString = `${form.lifespanMin} ${form.lifespanUnit}`;
+        } else if (form.lifespanMax) {
+          lifespanString = `${form.lifespanMax} ${form.lifespanUnit}`;
+        }
+        if (lifespanString) fd.append("lifespan", lifespanString);
+      }
+      
+      if (form.diet) fd.append("diet", form.diet);
       if (form.description) fd.append("description", form.description.trim());
       if (form.summary) fd.append("summary", form.summary.trim());
       fd.append("featured", String(!!form.featured));
@@ -478,11 +552,107 @@ export default function AdminDashboard() {
                         ))}
                       </select>
                     </div>
-                    <Input name="type" value={form.type} onChange={onChange} placeholder="Animal type" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
-                    <Input name="size" value={form.size} onChange={onChange} placeholder="Size" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Animal Type</label>
+                      <select
+                        name="type"
+                        value={form.type}
+                        onChange={onChange}
+                        className="h-12 rounded-xl border border-gray-200 px-4 text-sm bg-white/40 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-full"
+                      >
+                        {ANIMAL_TYPES.map((t) => (
+                          <option key={t.value} value={t.value} disabled={t.value === ""}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Size Range Selector */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Size Range</label>
+                      <div className="flex gap-2">
+                        <Input 
+                          name="sizeMin" 
+                          type="number"
+                          value={form.sizeMin} 
+                          onChange={onChange} 
+                          placeholder="From" 
+                          className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm flex-1"
+                        />
+                        <span className="flex items-center text-gray-500 px-2">to</span>
+                        <Input 
+                          name="sizeMax" 
+                          type="number"
+                          value={form.sizeMax} 
+                          onChange={onChange} 
+                          placeholder="To" 
+                          className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm flex-1"
+                        />
+                        <select
+                          name="sizeUnit"
+                          value={form.sizeUnit}
+                          onChange={onChange}
+                          className="h-12 rounded-xl border border-gray-200 px-3 text-sm bg-white/40 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                          <option value="mm">mm</option>
+                          <option value="cm">cm</option>
+                          <option value="m">m</option>
+                        </select>
+                      </div>
+                    </div>
+                    
                     <Input name="family" value={form.family} onChange={onChange} placeholder="Family" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
-                    <Input name="lifespan" value={form.lifespan} onChange={onChange} placeholder="Lifespan" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
-                    <Input name="diet" value={form.diet} onChange={onChange} placeholder="Diet" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
+                    
+                    {/* Lifespan Range Selector */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Lifespan Range</label>
+                      <div className="flex gap-2">
+                        <Input 
+                          name="lifespanMin" 
+                          type="number"
+                          value={form.lifespanMin} 
+                          onChange={onChange} 
+                          placeholder="From" 
+                          className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm flex-1"
+                        />
+                        <span className="flex items-center text-gray-500 px-2">to</span>
+                        <Input 
+                          name="lifespanMax" 
+                          type="number"
+                          value={form.lifespanMax} 
+                          onChange={onChange} 
+                          placeholder="To" 
+                          className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm flex-1"
+                        />
+                        <select
+                          name="lifespanUnit"
+                          value={form.lifespanUnit}
+                          onChange={onChange}
+                          className="h-12 rounded-xl border border-gray-200 px-3 text-sm bg-white/40 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                          <option value="months">months</option>
+                          <option value="years">years</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Diet Type</label>
+                      <select
+                        name="diet"
+                        value={form.diet}
+                        onChange={onChange}
+                        className="h-12 rounded-xl border border-gray-200 px-4 text-sm bg-white/40 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-full"
+                      >
+                        {DIET_TYPES.map((d) => (
+                          <option key={d.value} value={d.value} disabled={d.value === ""}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
                     <Input name="description" value={form.description} onChange={onChange} placeholder="Description" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
                   </div>
                 </div>
