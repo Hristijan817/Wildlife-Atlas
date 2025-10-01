@@ -1,8 +1,8 @@
+// src/components/AnimalCard.jsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const API_RAW = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API = API_RAW.endsWith("/") ? API_RAW.slice(0, -1) : API_RAW;
@@ -37,12 +37,26 @@ function buildImgSrc(cardImage) {
   return `${API}/${cardImage}`;
 }
 
-export default function AnimalCard({
-  animal,
-  index = 0,
-}) {
+export default function AnimalCard({ animal, index = 0 }) {
   const imgSrc = buildImgSrc(animal.cardImage);
   const habitatConfig = HABITAT_CONFIG[animal.habitat] || HABITAT_CONFIG.kopno;
+  const navigate = useNavigate();
+
+  const handleCompare = () => {
+    let stored = JSON.parse(localStorage.getItem("compareList")) || [];
+    if (stored.some((a) => a._id === animal._id)) {
+      // Remove if already in compare list
+      stored = stored.filter((a) => a._id !== animal._id);
+    } else {
+      if (stored.length >= 3) {
+        alert("Можете да споредите најмногу 3 животни!");
+        return;
+      }
+      stored.push(animal);
+    }
+    localStorage.setItem("compareList", JSON.stringify(stored));
+    navigate("/compare");
+  };
 
   return (
     <motion.div
@@ -57,7 +71,7 @@ export default function AnimalCard({
         <motion.div
           className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${habitatConfig.color} opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-500`}
         />
-        
+
         {/* Floating habitat badge */}
         <div className="absolute top-4 left-4 z-20">
           <motion.div 
@@ -87,11 +101,8 @@ export default function AnimalCard({
               whileHover={{ scale: 1.1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
-            
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-60" />
-            
-
           </div>
 
           {/* Content Section */}
@@ -104,7 +115,7 @@ export default function AnimalCard({
             >
               {animal.name}
             </motion.h2>
-            
+
             {/* Summary */}
             <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 flex-1">
               {animal.summary || "Без опис."}
@@ -124,28 +135,37 @@ export default function AnimalCard({
               )}
             </div>
 
-            {/* Action Button */}
-            <Link to={`/animals/${animal._id}`} className="mt-4">
-              <Button
-                className={`w-full bg-gradient-to-r ${habitatConfig.color} text-white font-semibold rounded-xl py-3 
-                           hover:opacity-90 hover:shadow-lg transition-all duration-300 
-                           group-hover:shadow-2xl group-hover:scale-[1.02]`}
-              >
-                <motion.span
-                  className="flex items-center justify-center gap-2"
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.2 }}
+            {/* Action Buttons */}
+            <div className="mt-4 flex gap-3">
+              <Link to={`/animals/${animal._id}`} className="flex-1">
+                <Button
+                  className={`w-full bg-gradient-to-r ${habitatConfig.color} text-white font-semibold rounded-xl py-3 
+                             hover:opacity-90 hover:shadow-lg transition-all duration-300 
+                             group-hover:shadow-2xl group-hover:scale-[1.02]`}
                 >
-                  Детали
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  <motion.span
+                    className="flex items-center justify-center gap-2"
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    →
-                  </motion.div>
-                </motion.span>
+                    Детали
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      →
+                    </motion.div>
+                  </motion.span>
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="flex-1 border-cyan-400 text-cyan-300 hover:bg-cyan-600/20 rounded-xl"
+                onClick={handleCompare}
+              >
+                Спореди
               </Button>
-            </Link>
+            </div>
           </CardContent>
         </div>
 

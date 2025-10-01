@@ -13,48 +13,60 @@ import AirAnimals from "./pages/AirAnimals";
 import WaterAnimals from "./pages/WaterAnimals";
 import LandAnimals from "./pages/LandAnimals";
 import AnimalEdit from "./components/AnimalEdit";
+import ComparePage from "@/pages/ComparePage";
 
 const App = () => {
   return (
     <Router>
-        <AuthProvider apiUrl={import.meta.env.VITE_API_URL || "http://localhost:5000"}>
-          <NavBar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            {/* Habitat pages */}
-            <Route path="/kopno" element={<LandAnimals habitat="kopno" />} />
-            <Route path="/voda" element={<WaterAnimals habitat="voda" />} />
-            <Route path="/vozduh" element={<AirAnimals habitat="vozduh" />} />
+      <AuthProvider
+        apiUrl={import.meta.env.VITE_API_URL || "http://localhost:5000"}
+      >
+        <NavBar />
+        <Routes>
+          {/* Home */}
+          <Route path="/" element={<Home />} />
 
-            {/* Details */}
-            <Route path="/animals/:id" element={<AnimalDetails />} />
-            <Route path="/animals/:id/edit" element={
+          {/* Habitat pages */}
+          <Route path="/kopno" element={<LandAnimals habitat="kopno" />} />
+          <Route path="/voda" element={<WaterAnimals habitat="voda" />} />
+          <Route path="/vozduh" element={<AirAnimals habitat="vozduh" />} />
+
+          {/* Compare Page */}
+          <Route path="/compare" element={<ComparePage />} />
+
+          {/* Animal details */}
+          <Route path="/animals/:id" element={<AnimalDetails />} />
+          <Route
+            path="/animals/:id/edit"
+            element={
               <ProtectedRoute>
                 <AnimalEdit />
               </ProtectedRoute>
-            } />
+            }
+          />
 
-            {/* Admin */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/add"
-              element={
-                <ProtectedRoute>
-                  <AddAnimal />
-                </ProtectedRoute>
-              }
-            />
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/add"
+            element={
+              <ProtectedRoute>
+                <AddAnimal />
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/login" element={<LoginPage />} />
-          </Routes>
-        </AuthProvider>
+          {/* Auth */}
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 };

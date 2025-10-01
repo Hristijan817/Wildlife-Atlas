@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import AnimalCard from "@/components/AnimalCard";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Filter, Grid3x3, LayoutGrid, SlidersHorizontal, X } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function LandAnimals() {
   const [animals, setAnimals] = useState([]);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [viewMode, setViewMode] = useState("grid"); // grid or compact
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [dietFilter, setDietFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch(`${API}/api/animals?habitat=kopno`)
       .then((res) => res.json())
       .then((data) => {
@@ -17,78 +25,305 @@ export default function LandAnimals() {
           ? data.filter((a) => a.featured !== false)
           : [];
         setAnimals(featured);
+        setLoading(false);
       })
-      .catch((err) => console.error("Error fetching animals:", err));
+      .catch((err) => {
+        console.error("Error fetching animals:", err);
+        setLoading(false);
+      });
   }, []);
 
-  const filtered = animals.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter and sort logic
+  const filtered = animals
+    .filter((a) => a.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((a) => {
+      if (dietFilter === "all") return true;
+      return a.diet?.toLowerCase().includes(dietFilter.toLowerCase());
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "lifespan") {
+        const aLife = parseInt(a.lifespan) || 0;
+        const bLife = parseInt(b.lifespan) || 0;
+        return bLife - aLife;
+      }
+      return 0;
+    });
+
+  // Get unique diet types for filter
+  const dietTypes = ["all", ...new Set(animals.map(a => a.diet).filter(Boolean))];
 
   return (
     <div className="relative min-h-screen text-white overflow-hidden">
-      {/* Background image behind everything */}
-      <div className="absolute inset-0 -z-10">
-        <img
+      {/* Animated Background with Parallax Effect */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/40 via-green-900/60 to-slate-950"></div>
+        <motion.img
           src="/landanimals-hero.jpg"
           alt="Hero Background"
-          className="w-full h-full object-cover opacity-70"
+          className="w-full h-full object-cover opacity-90"
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/70 via-emerald-800/60 to-emerald-950/90" />
-      </div>
-
-      {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 text-center py-16"
-      >
-        <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-lime-300 via-emerald-100 to-green-400 bg-clip-text text-transparent drop-shadow-lg">
-          Животни на Копно
-        </h1>
-        <p className="text-lg text-emerald-100 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-          Истражете ја разновидноста на животните што живеат на копно.
-        </p>
-      </motion.div>
-
-      {/* Animated Divider */}
-      <motion.div
-        className="max-w-6xl mx-auto h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent my-12"
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 3, repeat: Infinity }}
-      />
-
-      {/* Search Bar */}
-      <div className="relative z-10 max-w-md mx-auto mb-12">
-        <Input
-          type="text"
-          placeholder="🔍 Пребарај животни на копно..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="backdrop-blur-md bg-emerald-700/30 border border-emerald-400/50 text-white placeholder:text-emerald-200 shadow-lg rounded-2xl focus:ring-2 focus:ring-lime-400"
-        />
-      </div>
-
-      {/* Cards Grid */}
-      <div className="relative z-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto px-6 pb-20">
-        {filtered.map((animal, index) => (
-          <AnimalCard
-            key={animal._id}
-            animal={animal}
-            index={index}
-            gradient="bg-gradient-to-r from-emerald-600 via-green-500 to-lime-400"
-            textColor="text-white"
-            buttonGradient="bg-gradient-to-r from-emerald-500 to-green-600"
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/70 via-transparent to-slate-950/95" />
+        
+        {/* Floating particles */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-lime-400/20 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.2, 0.5, 0.2],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
           />
         ))}
       </div>
 
-      {filtered.length === 0 && (
-        <p className="relative z-10 text-center text-emerald-200 mt-12">
-          Нема додадени животни во оваа категорија.
+      {/* Hero Section with Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative z-10 text-center pt-20 pb-12 px-4"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="inline-block mb-4 px-6 py-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full backdrop-blur-sm"
+        >
+          <span className="text-emerald-300 text-sm font-semibold tracking-wider">
+            🌍 КОПНЕНИ ЖИВОТНИ
+          </span>
+        </motion.div>
+        
+        <h1 className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-lime-300 via-emerald-200 to-green-400 bg-clip-text text-transparent drop-shadow-2xl">
+          Животни на Копно
+        </h1>
+        
+        <p className="text-xl text-emerald-100/90 max-w-3xl mx-auto leading-relaxed mb-8 drop-shadow-lg">
+          Истражете ја разновидноста на животните што живеат на копно - од моќни предатори до нежни пасачи.
         </p>
+
+        {/* Stats Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="flex justify-center gap-8 flex-wrap"
+        >
+          <div className="bg-emerald-800/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-emerald-500/30">
+            <div className="text-3xl font-bold text-lime-300">{animals.length}</div>
+            <div className="text-sm text-emerald-200">Видови</div>
+          </div>
+          <div className="bg-emerald-800/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-emerald-500/30">
+            <div className="text-3xl font-bold text-lime-300">{filtered.length}</div>
+            <div className="text-sm text-emerald-200">Прикажани</div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Control Bar */}
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-slate-950/80 border-b border-emerald-500/20 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={20} />
+              <Input
+                type="text"
+                placeholder="Пребарај животни..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-12 backdrop-blur-md bg-emerald-900/30 border border-emerald-400/50 text-white placeholder:text-emerald-300/60 shadow-lg rounded-xl focus:ring-2 focus:ring-lime-400 h-12"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-emerald-300"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+
+            {/* Controls */}
+            <div className="flex gap-3 items-center">
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-emerald-900/40 border border-emerald-500/30 rounded-xl text-emerald-100 cursor-pointer hover:bg-emerald-900/60 transition-colors backdrop-blur-sm"
+              >
+                <option value="name">Име</option>
+                <option value="lifespan">Животен век</option>
+              </select>
+
+              {/* Filter Toggle */}
+              <Button
+                onClick={() => setFilterOpen(!filterOpen)}
+                className={`${
+                  filterOpen ? 'bg-emerald-600' : 'bg-emerald-900/40'
+                } hover:bg-emerald-600 border border-emerald-500/30 backdrop-blur-sm`}
+              >
+                <SlidersHorizontal size={18} className="mr-2" />
+                Филтер
+              </Button>
+
+              {/* View Mode */}
+              <div className="flex gap-2 bg-emerald-900/40 border border-emerald-500/30 rounded-xl p-1 backdrop-blur-sm">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-emerald-600 text-white"
+                      : "text-emerald-300 hover:text-white"
+                  }`}
+                >
+                  <LayoutGrid size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode("compact")}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === "compact"
+                      ? "bg-emerald-600 text-white"
+                      : "text-emerald-300 hover:text-white"
+                  }`}
+                >
+                  <Grid3x3 size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Panel */}
+          <AnimatePresence>
+            {filterOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 mt-4 border-t border-emerald-500/20">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-emerald-300 text-sm font-semibold mr-2">Исхрана:</span>
+                    {dietTypes.map((diet) => (
+                      <button
+                        key={diet}
+                        onClick={() => setDietFilter(diet)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          dietFilter === diet
+                            ? "bg-lime-500 text-slate-900"
+                            : "bg-emerald-800/40 text-emerald-200 hover:bg-emerald-700/60"
+                        }`}
+                      >
+                        {diet === "all" ? "Сите" : diet}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-20">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-emerald-500/30 border-t-lime-400 rounded-full"
+          />
+        </div>
       )}
+
+      {/* Cards Grid */}
+      {!loading && (
+        <motion.div
+          layout
+          className={`relative z-10 max-w-7xl mx-auto px-4 py-12 grid gap-8 ${
+            viewMode === "grid"
+              ? "sm:grid-cols-2 lg:grid-cols-3"
+              : "sm:grid-cols-2 lg:grid-cols-4"
+          }`}
+        >
+          <AnimatePresence mode="popLayout">
+            {filtered.map((animal, index) => (
+              <motion.div
+                key={animal._id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <AnimalCard
+                  animal={animal}
+                  index={index}
+                  gradient="bg-gradient-to-r from-emerald-600 via-green-500 to-lime-400"
+                  textColor="text-white"
+                  buttonGradient="bg-gradient-to-r from-emerald-500 to-green-600"
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* Empty State */}
+      {!loading && filtered.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 text-center py-20"
+        >
+          <div className="bg-emerald-800/20 backdrop-blur-md border border-emerald-500/30 rounded-3xl p-12 max-w-md mx-auto">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-bold text-emerald-200 mb-2">
+              Нема резултати
+            </h3>
+            <p className="text-emerald-300/80 mb-6">
+              Пробајте со различни критериуми за пребарување
+            </p>
+            <Button
+              onClick={() => {
+                setSearch("");
+                setDietFilter("all");
+              }}
+              className="bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-600 hover:to-lime-600 text-white"
+            >
+              Ресетирај филтри
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Floating Action Button */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 1 }}
+        className="fixed bottom-8 right-8 bg-gradient-to-r from-lime-500 to-emerald-500 text-white p-4 rounded-full shadow-2xl hover:shadow-lime-500/50 transition-all hover:scale-110 z-30"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </motion.button>
     </div>
   );
 }

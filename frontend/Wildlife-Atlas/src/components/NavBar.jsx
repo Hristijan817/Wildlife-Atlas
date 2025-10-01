@@ -18,7 +18,7 @@ export default function NavBar() {
     { name: "Воздух", to: "/vozduh", icon: "🦅" },
     { name: "Вода", to: "/voda", icon: "🐟" },
     { name: "Квиз", to: "/quiz", icon: "🧩" },
-    { name: "Мапа", to: "/map", icon: "🗺️" },
+    { name: "Спореди", to: "/compare", icon: "🗺️" },
     ...(!user ? [{ name: "Најави се", to: "/login", icon: "🔐" }] : []),
     ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin", icon: "⚙️" }] : []),
   ];
@@ -49,7 +49,7 @@ export default function NavBar() {
             >
               <div className="text-2xl group-hover:rotate-12 transition-transform duration-300">🌿</div>
               <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent tracking-tight">
-                Animal Explorer
+                Wildlife Atlas
               </span>
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
