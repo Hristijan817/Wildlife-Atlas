@@ -120,7 +120,7 @@ export default function Home() {
               },
               { 
                 number: featuredCount, 
-                text: "Приказани Животни", 
+                text: "Прикажани Животни", 
                 icon: <Star className="w-8 h-8" />,
                 color: "from-amber-500 to-orange-500"
               },

@@ -905,7 +905,7 @@ export default function AnimalDetails() {
         {animal.publications?.length > 0 && (
           <section className="bg-gray-900/70 backdrop-blur-md rounded-2xl p-10 shadow-lg border border-gray-700">
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 bg-gradient-to-r from-sky-400 to-emerald-300 bg-clip-text text-transparent">
-              <BookOpen className="w-7 h-7" /> Fun Fact
+              <BookOpen className="w-7 h-7" /> Did You Know?
             </h2>
             <div className="grid md:grid-cols-2 gap-5">
               {animal.publications.map((pub, idx) => (
@@ -931,21 +931,7 @@ export default function AnimalDetails() {
           </section>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-4 justify-end">
-          <button
-            onClick={() => navigate(`/animals/${id}/edit`)}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:opacity-90 text-white font-semibold shadow-md transition text-sm uppercase tracking-wide"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-red-500 to-pink-600 hover:opacity-90 text-white font-semibold shadow-md transition text-sm uppercase tracking-wide"
-          >
-            Delete
-          </button>
-        </div>
+        
       </div>
     </div>
   );
