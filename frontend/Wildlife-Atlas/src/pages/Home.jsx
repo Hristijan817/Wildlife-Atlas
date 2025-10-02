@@ -12,7 +12,6 @@ import {
   RefreshCcw,
   Filter,
   ArrowRight,
-  Play,
   Globe,
   Mountain,
   Waves,
@@ -20,6 +19,8 @@ import {
   Zap,
   Users,
   BookOpen,
+  Info,
+  Star,
 } from "lucide-react";
 import AnimateIn from "@/components/AnimateIn";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -48,6 +49,11 @@ export default function Home() {
     }
   };
 
+  // Stats calculations
+  const totalAnimals = animals.length;
+  const featuredCount = animals.filter((a) => a.featured !== false).length;
+  const habitatsCovered = new Set(animals.map((a) => a.habitat)).size;
+
   return (
     <div className="relative min-h-screen font-sans overflow-x-hidden bg-gradient-to-br from-slate-50 via-green-50 to-blue-50 text-gray-800">
       {/* Enhanced Particle Background */}
@@ -69,13 +75,6 @@ export default function Home() {
 
         <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
           <AnimateIn delay={0.1} from="bottom" distance={40}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">Дипломска Работа - МERN Stack</span>
-            </div>
-          </AnimateIn>
-
-          <AnimateIn delay={0.2} from="bottom" distance={40}>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               Откриј ги
               <span className="block bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
@@ -84,7 +83,7 @@ export default function Home() {
             </h1>
           </AnimateIn>
 
-          <AnimateIn delay={0.3} from="bottom" distance={40}>
+          <AnimateIn delay={0.2} from="bottom" distance={40}>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-8 text-gray-200 leading-relaxed">
               Интерактивно истражување на светот на животните преку{' '}
               <span className="text-green-300 font-semibold">3D модели</span>,{' '}
@@ -92,49 +91,6 @@ export default function Home() {
               <span className="text-purple-300 font-semibold">виртуелни патувања</span>.
             </p>
           </AnimateIn>
-
-          {/* Enhanced CTA Buttons */}
-          <AnimateIn delay={0.4} from="bottom" distance={40}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
-              <Button
-                className="text-lg px-8 py-6 flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 border-0 shadow-lg shadow-green-500/25"
-                onClick={() => navigate("/kopno")}
-              >
-                <Play className="w-5 h-5" />
-                Започни Авантура
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="secondary"
-                className="text-lg px-8 py-6 flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white"
-                onClick={() => navigate("/quiz")}
-              >
-                <HelpCircle className="w-5 h-5" />
-                Пробај Квиз
-              </Button>
-            </div>
-          </AnimateIn>
-
-          {/* Scroll indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5 }}
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          >
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
-            >
-              <motion.div
-                animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-1 h-3 bg-white/50 rounded-full mt-2"
-              />
-            </motion.div>
-          </motion.div>
         </div>
       </section>
 
@@ -157,22 +113,22 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { 
-                number: "300+", 
-                text: "Видови животни", 
-                icon: <PawPrint className="w-8 h-8" />,
-                color: "from-green-500 to-emerald-500"
-              },
-              { 
-                number: "50+", 
-                text: "Држави претставени", 
-                icon: <Globe className="w-8 h-8" />,
+                number: totalAnimals, 
+                text: "Вкупно Животни", 
+                icon: <Info className="w-8 h-8" />,
                 color: "from-blue-500 to-cyan-500"
               },
               { 
-                number: "1,000+", 
-                text: "Факти и приказни", 
-                icon: <BookOpen className="w-8 h-8" />,
-                color: "from-purple-500 to-pink-500"
+                number: featuredCount, 
+                text: "Приказани Животни", 
+                icon: <Star className="w-8 h-8" />,
+                color: "from-amber-500 to-orange-500"
+              },
+              { 
+                number: habitatsCovered, 
+                text: "Опфатени Живеалишта", 
+                icon: <Globe className="w-8 h-8" />,
+                color: "from-emerald-500 to-teal-500"
               },
             ].map((stat, i) => (
               <AnimateIn key={i} delay={i * 0.1} from="bottom" distance={40}>
@@ -344,14 +300,7 @@ export default function Home() {
                     Откриј Животно
                   </Button>
                   
-                  <Button
-                    variant="outline"
-                    className="px-8 py-6 border-white/30 text-white hover:bg-white/10"
-                    onClick={() => navigate("/animals")}
-                  >
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    Види Сите Животни
-                  </Button>
+                  
                 </div>
               </AnimateIn>
             </motion.div>
