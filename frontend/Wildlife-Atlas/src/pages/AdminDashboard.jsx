@@ -913,12 +913,12 @@ export default function AdminDashboard() {
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Publications</label>
+                      <label className="text-sm font-semibold text-gray-700">Fun Fact</label>
                       <textarea
                         name="publications"
                         value={form.publications}
                         onChange={onChange}
-                        placeholder="Publications (Title|URL per line)"
+                        placeholder="Fun fact about the animal"
                         className="min-h-[120px] rounded-xl border border-gray-200 p-4 text-sm w-full bg-white/30 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>

@@ -1,9 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Shield } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Menu, LogOut, Home, Mountain, Bird, Waves, HelpCircle, Scale, Lock, Settings } from "lucide-react";
 import { useAuth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
 
 export default function NavBar() {
   const location = useLocation();
@@ -12,16 +12,28 @@ export default function NavBar() {
 
   const isActive = (path) => location.pathname === path;
 
-  const links = [
-    { name: "Дома", to: "/", icon: "🏠" },
-    { name: "Копно", to: "/kopno", icon: "🌲" },
-    { name: "Воздух", to: "/vozduh", icon: "🦅" },
-    { name: "Вода", to: "/voda", icon: "🐟" },
-    { name: "Квиз", to: "/quiz", icon: "🧩" },
-    { name: "Спореди", to: "/compare", icon: "🗺️" },
-    ...(!user ? [{ name: "Најави се", to: "/login", icon: "🔐" }] : []),
-    ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin", icon: "⚙️" }] : []),
-  ];
+  // Icon mapping for better visual consistency
+  const iconMap = {
+    "Дома": <Home className="w-4 h-4" />,
+    "Копно": <Mountain className="w-4 h-4" />,
+    "Воздух": <Bird className="w-4 h-4" />,
+    "Вода": <Waves className="w-4 h-4" />,
+    "Квиз": <HelpCircle className="w-4 h-4" />,
+    "Спореди": <Scale className="w-4 h-4" />,
+    "Најави се": <Lock className="w-4 h-4" />,
+    "Админ": <Settings className="w-4 h-4" />,
+  };
+
+  const links = useMemo(() => [
+    { name: "Дома", to: "/" },
+    { name: "Копно", to: "/kopno" },
+    { name: "Воздух", to: "/vozduh" },
+    { name: "Вода", to: "/voda" },
+    { name: "Квиз", to: "/quiz" },
+    { name: "Спореди", to: "/compare" },
+    ...(!user ? [{ name: "Најави се", to: "/login" }] : []),
+    ...(user?.role === "admin" ? [{ name: "Админ", to: "/admin" }] : []),
+  ], [user]);
 
   const onLogout = () => {
     logout();
@@ -30,168 +42,171 @@ export default function NavBar() {
 
   return (
     <>
-      {/* Compact header with reduced height */}
       <header className="fixed top-0 left-0 right-0 z-50 w-full">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/95 to-white/90 backdrop-blur-lg border-b border-white/30 shadow-md" />
-        
-        {/* Subtle animated background elements - smaller and more subtle */}
+        {/* Enhanced glassmorphism background */}
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-lg" />
+
+        {/* Subtle animated gradient accents */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-20 h-20 bg-gradient-to-br from-emerald-200/15 to-green-300/8 rounded-full blur-2xl animate-pulse" />
-          <div className="absolute top-0 right-1/4 w-16 h-16 bg-gradient-to-br from-blue-200/15 to-cyan-300/8 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-0 left-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-green-400/5 rounded-full blur-3xl animate-pulse" />
+          <div
+            className="absolute top-0 right-1/4 w-28 h-28 bg-gradient-to-br from-blue-400/10 to-cyan-400/5 rounded-full blur-2xl animate-pulse"
+            style={{ animationDelay: "1.5s" }}
+          />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-between">
-            {/* Compact Logo */}
+        <div className="relative max-w-7xl mx-auto px-6 py-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* Enhanced Logo */}
             <Link
               to="/"
-              className="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 border border-emerald-200/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105"
+              className="group relative flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 hover:from-emerald-100 hover:via-green-100 hover:to-teal-100 border border-emerald-200/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
             >
-              <div className="text-2xl group-hover:rotate-12 transition-transform duration-300">🌿</div>
-              <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent tracking-tight">
-                Wildlife Atlas
-              </span>
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg blur opacity-30 group-hover:opacity-50 transition-opacity" />
+                <div className="relative text-2xl transform group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300">
+                  🌿
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent tracking-tight leading-none">
+                  Wildlife Atlas
+                </span>
+                <span className="text-[10px] text-gray-500 font-medium tracking-wide">
+                  Explore Nature
+                </span>
+              </div>
             </Link>
 
-            {/* Desktop Navigation - more compact */}
-            <nav className="hidden lg:flex items-center gap-1">
+            {/* Desktop Navigation - Improved spacing and hover states */}
+            <nav className="hidden lg:flex items-center gap-1.5 ml-auto">
               {links.map((link) => {
                 const active = isActive(link.to);
                 return (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`group relative flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:scale-105 ${
+                    className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
                       active
-                        ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/25"
-                        : "text-gray-700 hover:bg-gradient-to-r hover:from-white/70 hover:to-gray-50/90 hover:shadow-md hover:text-emerald-700 backdrop-blur-sm"
+                        ? "bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30"
+                        : "text-gray-700 hover:text-emerald-700 hover:bg-white/80 hover:shadow-md"
                     }`}
                   >
-                    <span className={`text-lg transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
-                      {link.icon}
-                    </span>
-                    <span className="font-bold whitespace-nowrap">{link.name}</span>
-                    
-                    {/* Active indicator */}
+                    {/* Animated background for active state */}
                     {active && (
-                      <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-sm" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 rounded-xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
                     )}
                     
-                    {/* Hover glow effect */}
+                    <span className={`relative z-10 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-110"}`}>
+                      {iconMap[link.name]}
+                    </span>
+                    <span className="relative z-10 whitespace-nowrap">{link.name}</span>
+                    
+                    {/* Hover indicator */}
                     {!active && (
-                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-emerald-500/10 to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-emerald-500 to-green-500 group-hover:w-3/4 transition-all duration-300 rounded-full" />
                     )}
                   </Link>
                 );
               })}
 
-              {/* Compact Theme Toggle */}
-              <div className="ml-3 p-1.5 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200/60 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                <ThemeToggle />
-              </div>
-
-              {/* Compact Admin Section */}
+              {/* Enhanced Logout Button */}
               {user?.role === "admin" && (
-                <div className="ml-2 flex items-center gap-2">
-                  {/* Compact User indicator */}
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/50">
-                    <Shield className="w-3.5 h-3.5 text-indigo-600" />
-                    <span className="text-xs font-bold text-indigo-700">Admin</span>
-                  </div>
-                  
-                  <Button
-                    size="sm"
-                    onClick={onLogout}
-                    className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 rounded-lg font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center gap-1.5"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    Одјави се
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  onClick={onLogout}
+                  className="ml-4 px-4 py-2.5 bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white hover:from-red-600 hover:via-rose-600 hover:to-pink-600 rounded-xl font-semibold text-sm border-0 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/35 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden xl:inline">Одјави се</span>
+                </Button>
               )}
             </nav>
 
-            {/* Mobile Menu - more compact */}
-            <div className="lg:hidden flex items-center gap-2">
-              {/* Compact mobile user indicator */}
-              {user?.role === "admin" && (
-                <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/50">
-                  <Shield className="w-3.5 h-3.5 text-indigo-600" />
-                  <span className="text-xs font-bold text-indigo-700">Admin</span>
-                </div>
-              )}
-
-              <div className="p-1.5 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200/60">
-                <ThemeToggle />
-              </div>
-
+            {/* Mobile Menu Button - Enhanced */}
+            <div className="lg:hidden flex items-center">
               <Sheet>
-                <SheetTrigger className="p-2 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200/60 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                <SheetTrigger className="p-3 rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-md hover:shadow-lg hover:bg-white/90 transition-all duration-300 hover:scale-105 active:scale-95">
                   <Menu className="w-5 h-5 text-gray-700" />
                 </SheetTrigger>
-                
-                <SheetContent 
-                  side="right" 
-                  className="w-72 bg-gradient-to-br from-white/96 to-gray-50/96 backdrop-blur-xl border-l border-white/30 shadow-2xl"
+
+                <SheetContent
+                  side="right"
+                  className="w-80 bg-gradient-to-br from-white via-gray-50/95 to-emerald-50/30 backdrop-blur-2xl border-l border-gray-200/50 shadow-2xl"
                 >
-                  {/* Mobile menu background pattern */}
+                  {/* Enhanced mobile menu background effects */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-200/20 to-green-300/10 rounded-full blur-2xl" />
-                    <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-200/20 to-cyan-300/10 rounded-full blur-xl" />
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-emerald-300/20 to-green-300/10 rounded-full blur-3xl" />
+                    <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-gradient-to-br from-blue-300/20 to-cyan-300/10 rounded-full blur-2xl" />
                   </div>
 
-                  <div className="relative">
-                    {/* Compact mobile menu header */}
-                    <div className="flex items-center gap-2.5 mb-6 pb-3 border-b border-gray-200">
-                      <div className="text-xl">🌿</div>
-                      <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                        Animal Explorer
-                      </span>
+                  <div className="relative h-full flex flex-col">
+                    {/* Mobile header */}
+                    <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-200/60">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg blur opacity-30" />
+                        <div className="relative text-2xl">🌿</div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent leading-none">
+                          Wildlife Atlas
+                        </span>
+                        <span className="text-xs text-gray-500 font-medium">
+                          Mobile Menu
+                        </span>
+                      </div>
                     </div>
 
-                    <nav className="space-y-1.5">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                        Навигација
-                      </p>
-                      
+                    {/* Mobile navigation links */}
+                    <nav className="flex-1 space-y-2 overflow-y-auto">
                       {links.map((link) => {
                         const active = isActive(link.to);
                         return (
                           <Link
                             key={link.to}
                             to={link.to}
-                            className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 ${
+                            className={`group relative flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
                               active
-                                ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/25"
-                                : "text-gray-700 hover:bg-gradient-to-r hover:from-white/70 hover:to-gray-50/90 hover:shadow-md hover:text-emerald-700"
+                                ? "bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30"
+                                : "text-gray-700 hover:text-emerald-700 hover:bg-white/80 hover:shadow-md active:scale-95"
                             }`}
                           >
-                            <span className={`text-lg transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
-                              {link.icon}
+                            {active && (
+                              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 rounded-xl blur opacity-40" />
+                            )}
+                            
+                            <span className={`relative z-10 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-110"}`}>
+                              {iconMap[link.name]}
                             </span>
-                            <span className="font-bold">{link.name}</span>
+                            <span className="relative z-10 flex-1">{link.name}</span>
                             
                             {active && (
-                              <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full shadow-sm" />
+                              <div className="relative z-10 w-2 h-2 bg-white rounded-full animate-pulse" />
                             )}
                           </Link>
                         );
                       })}
-
-                      {/* Compact mobile logout */}
-                      {user?.role === "admin" && (
-                        <div className="pt-4 mt-4 border-t border-gray-200">
-                          <Button
-                            onClick={onLogout}
-                            className="w-full px-3 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 rounded-lg font-bold text-sm border-0 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            Одјави се
-                          </Button>
-                        </div>
-                      )}
                     </nav>
+
+                    {/* Mobile logout button */}
+                    {user?.role === "admin" && (
+                      <div className="pt-4 mt-4 border-t border-gray-200/60">
+                        <Button
+                          onClick={onLogout}
+                          className="w-full px-4 py-3.5 bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white hover:from-red-600 hover:via-rose-600 hover:to-pink-600 rounded-xl font-semibold text-sm border-0 shadow-lg shadow-red-500/25 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2.5 active:scale-95"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Одјави се
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Mobile footer info */}
+                    <div className="pt-4 mt-4 border-t border-gray-200/60">
+                      <p className="text-xs text-gray-500 text-center">
+                        Wildlife Atlas © 2025
+                      </p>
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -200,8 +215,8 @@ export default function NavBar() {
         </div>
       </header>
 
-      {/* Reduced spacer for smaller header */}
-      <div className="h-16" />
+      {/* Spacer to prevent content from going under fixed navbar */}
+      <div className="h-[72px]" />
     </>
   );
 }

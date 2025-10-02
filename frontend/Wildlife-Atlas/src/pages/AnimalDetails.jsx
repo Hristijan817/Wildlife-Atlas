@@ -905,7 +905,7 @@ export default function AnimalDetails() {
         {animal.publications?.length > 0 && (
           <section className="bg-gray-900/70 backdrop-blur-md rounded-2xl p-10 shadow-lg border border-gray-700">
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 bg-gradient-to-r from-sky-400 to-emerald-300 bg-clip-text text-transparent">
-              <BookOpen className="w-7 h-7" /> Publications
+              <BookOpen className="w-7 h-7" /> Fun Fact
             </h2>
             <div className="grid md:grid-cols-2 gap-5">
               {animal.publications.map((pub, idx) => (
