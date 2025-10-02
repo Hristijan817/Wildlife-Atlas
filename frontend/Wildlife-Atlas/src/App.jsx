@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider, ProtectedRoute } from "@/auth";
@@ -15,13 +16,32 @@ import LandAnimals from "./pages/LandAnimals";
 import AnimalEdit from "./components/AnimalEdit";
 import ComparePage from "@/pages/ComparePage";
 
+// 🆕 This component is our "doorman" that always resets scroll
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 const App = () => {
   return (
     <Router>
       <AuthProvider
         apiUrl={import.meta.env.VITE_API_URL || "http://localhost:5000"}
       >
+        {/* Navbar always visible */}
         <NavBar />
+
+        {/* ScrollToTop works silently in the background */}
+        <ScrollToTop />
+
         <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />

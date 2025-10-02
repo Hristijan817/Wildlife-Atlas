@@ -52,6 +52,8 @@ export default function AdminDashboard() {
     description: "",
     summary: "",
     publications: "",
+    prey: "",
+    predators: "",
     featured: true,
   });
 
@@ -173,6 +175,8 @@ export default function AdminDashboard() {
       description: "",
       summary: "",
       publications: "",
+      prey: "",
+      predators: "",
       featured: true,
     });
     setEditingId(null);
@@ -233,6 +237,8 @@ export default function AdminDashboard() {
       description: animal.description || "",
       summary: animal.summary || "",
       publications: publications,
+      prey: animal.prey || "",
+      predators: animal.predators || "",
       featured: animal.featured !== false,
     });
     
@@ -653,6 +659,28 @@ export default function AdminDashboard() {
                         ))}
                       </select>
                     </div>
+                    <div className="space-y-2">
+  <label className="text-sm font-semibold text-gray-700">Prey</label>
+  <Input
+    name="prey"
+    value={form.prey}
+    onChange={onChange}
+    placeholder="E.g., small fish, insects"
+    className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm"
+  />
+</div>
+
+<div className="space-y-2">
+  <label className="text-sm font-semibold text-gray-700">Predators</label>
+  <Input
+    name="predators"
+    value={form.predators}
+    onChange={onChange}
+    placeholder="E.g., sharks, eagles"
+    className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm"
+  />
+</div>
+
                     
                     <Input name="description" value={form.description} onChange={onChange} placeholder="Description" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
                   </div>
