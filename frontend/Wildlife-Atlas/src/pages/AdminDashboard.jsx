@@ -10,9 +10,9 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const HABITATS = [
   { value: "", label: "Habitat" },
-  { value: "kopno", label: "Kopno" },
-  { value: "voda", label: "Voda" },
-  { value: "vozduh", label: "Vozduh" },
+  { value: "kopno", label: "Копно" },
+  { value: "voda", label: "Вода" },
+  { value: "vozduh", label: "Воздух" },
 ];
 
 const ANIMAL_TYPES = [
@@ -25,9 +25,9 @@ const ANIMAL_TYPES = [
 
 const DIET_TYPES = [
   { value: "", label: "Select Diet Type" },
-  { value: "omnivore", label: "Omnivore" },
-  { value: "carnivore", label: "Carnivore" },
-  { value: "herbivore", label: "Herbivore" },
+  { value: "omnivore", label: "Сештојад" },
+  { value: "carnivore", label: "Месојад" },
+  { value: "herbivore", label: "Тревојад" },
 ];
 
 export default function AdminDashboard() {

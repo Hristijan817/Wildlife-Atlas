@@ -90,7 +90,7 @@ function InfoModal({ isOpen, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">How to Play</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Како да играш</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
             <X className="w-6 h-6" />
           </button>
@@ -98,36 +98,36 @@ function InfoModal({ isOpen, onClose }) {
         
         <div className="space-y-4 text-slate-300">
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">🎯 Objective</h3>
-            <p>Guess the mystery animal by comparing characteristics!</p>
+            <h3 className="text-xl font-semibold text-white mb-2">🎯 Цел</h3>
+            <p>Погоди ја мистериозната животна со споредување на карактеристиките!</p>
           </div>
           
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">🎮 Gameplay</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">🎮 Начин на игра</h3>
             <ul className="list-disc list-inside space-y-2">
-              <li>Type an animal name and select it from the dropdown</li>
-              <li>Compare the attributes with the mystery animal</li>
-              <li><span className="bg-green-600 px-2 py-1 rounded">Green</span> means exact match</li>
-              <li><span className="bg-amber-600 px-2 py-1 rounded">Orange with arrows</span> means close (higher/lower)</li>
-              <li><span className="bg-slate-700 px-2 py-1 rounded">Gray</span> means no match</li>
+              <li>Внеси име на животно и избери го од паѓачкото мени</li>
+              <li>Спореди ги атрибутите со мистериозната животна</li>
+              <li><span className="bg-green-600 px-2 py-1 rounded">Зелена</span> значи точно совпаѓање</li>
+              <li><span className="bg-amber-600 px-2 py-1 rounded">Портокалова со стрелки</span> значи блиску (повисоко/пониско)</li>
+              <li><span className="bg-slate-700 px-2 py-1 rounded">Сива</span> значи нема совпаѓање</li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">💡 Hints</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">💡 Помош</h3>
             <ul className="list-disc list-inside space-y-1">
-              <li>After 3 wrong guesses: Habitat revealed</li>
-              <li>After 5 wrong guesses: First letter revealed</li>
-              <li>After 7 wrong guesses: Family revealed</li>
+              <li>По 3 погрешни обиди: Откриен живеалиште</li>
+              <li>По 5 погрешни обиди: Откриена прва буква</li>
+              <li>По 7 погрешни обиди: Откриено семејство</li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">🏆 Achievements</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">🏆 Достигнувања</h3>
             <ul className="list-disc list-inside space-y-1">
-              <li>Perfect: Guess on first try</li>
-              <li>Amazing: Under 3 guesses</li>
-              <li>Build streaks for special rewards!</li>
+              <li>Совршено: Погоди на прв обид</li>
+              <li>Неверојатно: Под 3 обиди</li>
+              <li>Гради серии за специјални награди!</li>
             </ul>
           </div>
         </div>
@@ -136,7 +136,7 @@ function InfoModal({ isOpen, onClose }) {
           onClick={onClose}
           className="w-full mt-6 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 py-6 text-lg font-semibold"
         >
-          Got it!
+          Разбрав!
         </Button>
       </motion.div>
     </motion.div>
@@ -165,9 +165,9 @@ export default function QuizPage() {
 
   // Habitat label mapping
   const habitatLabels = {
-    kopno: 'Kopno',
-    voda: 'Voda',
-    vozduh: 'Vozduh'
+    kopno: 'Копно',
+    voda: 'Вода',
+    vozduh: 'Воздух'
   };
 
   // Timer for game duration
@@ -189,7 +189,7 @@ export default function QuizPage() {
         const randomAnimal = data[Math.floor(Math.random() * data.length)];
         setTarget(randomAnimal);
       })
-      .catch((err) => console.error("Error loading animals:", err));
+      .catch((err) => console.error("Грешка при вчитување на животни:", err));
   }, []);
 
   const startGame = () => {
@@ -210,12 +210,12 @@ export default function QuizPage() {
 
   const handleGuess = (animal) => {
     if (!gameStarted) {
-      setToast({ message: "Click START to begin the game!", type: "error" });
+      setToast({ message: "Кликни ЗАПОЧНИ за да ја започнеш играта!", type: "error" });
       return;
     }
     
     if (!target || guesses.find((g) => g._id === animal._id)) {
-      setToast({ message: "You already guessed this animal!", type: "error" });
+      setToast({ message: "Веќе ја погоди оваа животна!", type: "error" });
       return;
     }
 
@@ -245,15 +245,15 @@ export default function QuizPage() {
         
         // Achievement toasts
         if (newGuesses.length === 1) {
-          setTimeout(() => setToast({ message: "🎯 PERFECT! First try!", type: "success" }), 1000);
+          setTimeout(() => setToast({ message: "🎯 СОВРШЕНО! Прв обид!", type: "success" }), 1000);
         } else if (newGuesses.length <= 3) {
-          setTimeout(() => setToast({ message: "🌟 Amazing! Under 3 guesses!", type: "success" }), 1000);
+          setTimeout(() => setToast({ message: "🌟 Неверојатно! Под 3 обиди!", type: "success" }), 1000);
         }
         
         if (newStreak === 5) {
-          setTimeout(() => setToast({ message: "🔥 5 WIN STREAK!", type: "success" }), 1500);
+          setTimeout(() => setToast({ message: "🔥 5 ПОБЕДИ ВО НИЗ!", type: "success" }), 1500);
         } else if (newStreak === 10) {
-          setTimeout(() => setToast({ message: "⚡ 10 WIN STREAK! INCREDIBLE!", type: "success" }), 1500);
+          setTimeout(() => setToast({ message: "⚡ 10 ПОБЕДИ ВО НИЗ! НЕВЕРОЈАТНО!", type: "success" }), 1500);
         }
         
         setTimeout(() => setShowConfetti(false), 4000);
@@ -264,13 +264,13 @@ export default function QuizPage() {
 
       if (wrongGuesses === 3 && !hints.includes("habitat")) {
         setHints([...hints, "habitat"]);
-        setToast({ message: "💡 Hint unlocked: Habitat revealed!", type: "info" });
+        setToast({ message: "💡 Помош отклучена: Откриено живеалиште!", type: "info" });
       } else if (wrongGuesses === 5 && !hints.includes("firstLetter")) {
         setHints([...hints, "firstLetter"]);
-        setToast({ message: "💡 Hint unlocked: First letter revealed!", type: "info" });
+        setToast({ message: "💡 Помош отклучена: Откриена прва буква!", type: "info" });
       } else if (wrongGuesses === 7 && !hints.includes("family")) {
         setHints([...hints, "family"]);
-        setToast({ message: "💡 Hint unlocked: Family revealed!", type: "info" });
+        setToast({ message: "💡 Помош отклучена: Откриено семејство!", type: "info" });
       }
     }
   };
@@ -325,25 +325,25 @@ export default function QuizPage() {
   };
 
   const giveUp = () => {
-    if (window.confirm("Are you sure you want to give up and see the answer?")) {
+    if (window.confirm("Дали си сигурен дека сакаш да се откажеш и да го видиш одговорот?")) {
       setWinner(true);
       
       // Update stats (loss)
       const newGamesPlayed = gamesPlayed + 1;
       setGamesPlayed(newGamesPlayed);
       setCurrentStreak(0);
-      setToast({ message: "Better luck next time!", type: "info" });
+      setToast({ message: "Повеќе среќа следниот пат!", type: "info" });
     }
   };
 
   const shareResults = () => {
-    const resultsText = `🐾 Animal Quiz Game 🐾\n${winner && guesses[guesses.length - 1]?._id === target._id ? '✅' : '❌'} ${guesses.length} guesses | ${hints.length} hints | ${gameTime}s\nStreak: ${currentStreak} 🔥`;
+    const resultsText = `🐾 Погоди го Животното 🐾\n${winner && guesses[guesses.length - 1]?._id === target._id ? '✅' : '❌'} ${guesses.length} обиди | ${hints.length} помош | ${gameTime}с\nСерија: ${currentStreak} 🔥`;
     
     if (navigator.share) {
       navigator.share({ text: resultsText });
     } else {
       navigator.clipboard.writeText(resultsText);
-      setToast({ message: "Results copied to clipboard!", type: "success" });
+      setToast({ message: "Резултатите се копирани!", type: "success" });
     }
   };
 
@@ -394,7 +394,7 @@ export default function QuizPage() {
             <div className="text-center sm:text-left">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Guess the Animal
+                  Погоди го Животното
                 </h1>
                 <Button
                   onClick={() => setShowInfoModal(true)}
@@ -405,7 +405,7 @@ export default function QuizPage() {
                   <BookOpen className="w-5 h-5" />
                 </Button>
               </div>
-              <p className="text-slate-400">Can you identify the mystery animal?</p>
+              <p className="text-slate-400">Можеш ли да ја идентификуваш мистериозната животна?</p>
             </div>
 
             {/* Stats Cards */}
@@ -415,14 +415,14 @@ export default function QuizPage() {
                 className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
               >
                 <div className="text-2xl font-bold text-cyan-400">{gamesPlayed}</div>
-                <div className="text-xs text-slate-400">Played</div>
+                <div className="text-xs text-slate-400">Играни</div>
               </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
               >
                 <div className="text-2xl font-bold text-emerald-400">{winRate}%</div>
-                <div className="text-xs text-slate-400">Win Rate</div>
+                <div className="text-xs text-slate-400">Победи</div>
               </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05 }}
@@ -432,14 +432,14 @@ export default function QuizPage() {
                   {currentStreak}
                   {currentStreak > 0 && <Flame className="w-4 h-4" />}
                 </div>
-                <div className="text-xs text-slate-400">Streak</div>
+                <div className="text-xs text-slate-400">Серија</div>
               </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
               >
                 <div className="text-2xl font-bold text-purple-400">{bestStreak}</div>
-                <div className="text-xs text-slate-400">Best</div>
+                <div className="text-xs text-slate-400">Најдобра</div>
               </motion.div>
             </div>
           </div>
@@ -457,7 +457,7 @@ export default function QuizPage() {
                 className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 py-2 rounded-xl font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-2"
               >
                 <Play className="w-4 h-4" />
-                START GAME
+                ЗАПОЧНИ
               </Button>
             ) : (
               <Button
@@ -469,12 +469,12 @@ export default function QuizPage() {
                 {isPaused ? (
                   <>
                     <Play className="w-4 h-4" />
-                    Resume
+                    Продолжи
                   </>
                 ) : (
                   <>
                     <Pause className="w-4 h-4" />
-                    Pause
+                    Пауза
                   </>
                 )}
               </Button>
@@ -491,7 +491,7 @@ export default function QuizPage() {
           <div className="relative">
             <Input
               ref={inputRef}
-              placeholder="🔍 Type an animal name..."
+              placeholder="🔍 Внеси име на животно..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-slate-800/80 backdrop-blur-sm border-slate-700 text-white text-lg py-6 pl-6 pr-32 rounded-2xl focus:ring-2 focus:ring-cyan-500/50 transition-all"
@@ -504,7 +504,7 @@ export default function QuizPage() {
                 variant="ghost"
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
               >
-                Give Up
+                Откажи се
               </Button>
             )}
           </div>
@@ -541,7 +541,7 @@ export default function QuizPage() {
                   </motion.div>
                 ))}
                 {filtered.length === 0 && (
-                  <p className="p-4 text-center text-slate-400">No animals found</p>
+                  <p className="p-4 text-center text-slate-400">Не се најдени животни</p>
                 )}
               </motion.div>
             )}
@@ -558,11 +558,11 @@ export default function QuizPage() {
             <div className="flex items-center justify-between text-sm text-slate-400 mb-2">
               <span className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Attempts: {guesses.length}
+                Обиди: {guesses.length}
               </span>
               <span className="flex items-center gap-2">
                 <Lightbulb className="w-4 h-4" />
-                Hints: {hints.length}/3
+                Помош: {hints.length}/3
               </span>
             </div>
             <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -588,7 +588,7 @@ export default function QuizPage() {
               <div className="bg-gradient-to-br from-slate-800/70 to-slate-900/70 backdrop-blur-xl border border-slate-700 rounded-2xl p-6 shadow-xl">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-3 text-cyan-300">
                   <Lightbulb className="w-6 h-6" />
-                  Hints
+                  Помош
                 </h2>
                 <div className="space-y-3">
                   <AnimatePresence>
@@ -602,7 +602,7 @@ export default function QuizPage() {
                       >
                         <span className="text-2xl">🌍</span>
                         <div>
-                          <span className="text-slate-400">Habitat: </span>
+                          <span className="text-slate-400">Живеалиште: </span>
                           <span className="font-bold text-emerald-300">
                             {habitatLabels[target.habitat] || target.habitat}
                           </span>
@@ -619,7 +619,7 @@ export default function QuizPage() {
                       >
                         <span className="text-2xl">🔤</span>
                         <div>
-                          <span className="text-slate-400">First letter: </span>
+                          <span className="text-slate-400">Прва буква: </span>
                           <span className="font-bold text-cyan-300 text-2xl">
                             {target.name[0].toUpperCase()}
                           </span>
@@ -636,7 +636,7 @@ export default function QuizPage() {
                       >
                         <span className="text-2xl">🧬</span>
                         <div>
-                          <span className="text-slate-400">Family: </span>
+                          <span className="text-slate-400">Семејство: </span>
                           <span className="font-bold text-purple-300">{target.family}</span>
                         </div>
                       </motion.div>
@@ -660,13 +660,13 @@ export default function QuizPage() {
                 <table className="w-full bg-slate-900/50 backdrop-blur-sm">
                   <thead className="bg-slate-800/80">
                     <tr>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Animal</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Family</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Habitat</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Lifespan</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Diet</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Prey</th>
-                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Predators</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Животно</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Семејство</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Живеалиште</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Животен век</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Исхрана</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Плен</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Предатори</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -781,7 +781,7 @@ export default function QuizPage() {
                 </motion.div>
 
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                  {guesses[guesses.length - 1]?._id === target._id ? "Congratulations!" : "Game Over"}
+                  {guesses[guesses.length - 1]?._id === target._id ? "Честитки!" : "Крај на играта"}
                 </h2>
 
                 <img
@@ -795,7 +795,7 @@ export default function QuizPage() {
                 />
 
                 <p className="text-lg text-slate-300 mb-2">
-                  The animal was{" "}
+                  Животното беше{" "}
                   <span className="font-bold text-white text-xl">{target.name}</span>
                 </p>
 
@@ -803,15 +803,15 @@ export default function QuizPage() {
                   <div className="flex gap-4 justify-center mb-6 text-sm flex-wrap">
                     <div className="bg-slate-800/50 px-4 py-2 rounded-lg">
                       <div className="text-emerald-400 font-bold">{guesses.length}</div>
-                      <div className="text-slate-400">Guesses</div>
+                      <div className="text-slate-400">Обиди</div>
                     </div>
                     <div className="bg-slate-800/50 px-4 py-2 rounded-lg">
                       <div className="text-cyan-400 font-bold">{hints.length}</div>
-                      <div className="text-slate-400">Hints Used</div>
+                      <div className="text-slate-400">Помош</div>
                     </div>
                     <div className="bg-slate-800/50 px-4 py-2 rounded-lg">
                       <div className="text-purple-400 font-bold">{formatTime(gameTime)}</div>
-                      <div className="text-slate-400">Time</div>
+                      <div className="text-slate-400">Време</div>
                     </div>
                   </div>
                 )}
@@ -822,14 +822,14 @@ export default function QuizPage() {
                     className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-6 rounded-xl font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-2"
                   >
                     <Share2 className="w-5 h-5" />
-                    Share
+                    Сподели
                   </Button>
                   <Button
                     onClick={resetGame}
                     className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-8 py-6 rounded-xl font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 flex items-center gap-2"
                   >
                     <RotateCcw className="w-5 h-5" />
-                    Play Again
+                    Играј повторно
                   </Button>
                 </div>
               </motion.div>
