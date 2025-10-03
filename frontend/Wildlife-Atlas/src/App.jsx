@@ -15,8 +15,9 @@ import WaterAnimals from "./pages/WaterAnimals";
 import LandAnimals from "./pages/LandAnimals";
 import AnimalEdit from "./components/AnimalEdit";
 import ComparePage from "@/pages/ComparePage";
+import QuizPage from "@/pages/QuizPage";   // 🆕 Import QuizPage
 
-// 🆕 This component is our "doorman" that always resets scroll
+// 🆕 Scroll reset helper
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -53,6 +54,9 @@ const App = () => {
 
           {/* Compare Page */}
           <Route path="/compare" element={<ComparePage />} />
+
+          {/* 🆕 Quiz Page */}
+          <Route path="/quiz" element={<QuizPage />} />
 
           {/* Animal details */}
           <Route path="/animals/:id" element={<AnimalDetails />} />

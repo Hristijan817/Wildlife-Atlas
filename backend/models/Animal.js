@@ -27,9 +27,12 @@ const animalSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     summary: { type: String, default: "" },
 
+    // 🟢 NEW fields
+    prey: { type: String, default: "" },       // e.g., "grass, small fish"
+    predators: { type: String, default: "" },  // e.g., "lions, sharks"
+
     cardImage: { type: String, default: "" },
 
-    // ✅ New fields
     images: {
       type: [String], // Array of image URLs
       default: [],

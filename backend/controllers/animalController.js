@@ -167,7 +167,7 @@ exports.updateAnimal = async (req, res) => {
     const animal = await Animal.findById(req.params.id);
     if (!animal) return res.status(404).json({ message: "Animal not found" });
 
-    const fields = ["name", "family", "lifespan", "diet", "description", "summary", "size"];
+    const fields = ["name", "family", "lifespan", "diet", "description", "summary", "size", "prey", "predators"];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) animal[f] = req.body[f];
     });

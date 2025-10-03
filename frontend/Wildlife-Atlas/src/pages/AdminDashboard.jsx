@@ -323,6 +323,9 @@ export default function AdminDashboard() {
       if (form.description) fd.append("description", form.description.trim());
       if (form.summary) fd.append("summary", form.summary.trim());
       fd.append("featured", String(!!form.featured));
+      if (form.prey) fd.append("prey", form.prey.trim());
+      if (form.predators) fd.append("predators", form.predators.trim());
+
 
       if (form.publications) {
         const pubs = form.publications
@@ -608,7 +611,7 @@ export default function AdminDashboard() {
                         </select>
                       </div>
                     </div>
-                    
+
                     <Input name="family" value={form.family} onChange={onChange} placeholder="Family" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
                     
                     {/* Lifespan Range Selector */}

@@ -164,16 +164,16 @@ export default function AnimalDetails() {
         >
           {[
             {
-              label: "Classification",
-              value: animal.type,
-              icon: Leaf,
-              gradient: "from-emerald-500/20 via-emerald-600/30 to-teal-700/40",
-              borderGlow: "shadow-emerald-500/20",
-              iconBg: "bg-emerald-500/20",
-              iconGlow: "shadow-lg shadow-emerald-500/30",
-              accentColor: "text-emerald-300",
-              hoverGlow: "hover:shadow-emerald-500/30"
-            },
+    label: "Prey",
+    value: animal.prey,
+    icon: Utensils, // 🍴
+    gradient: "from-green-500/20 via-emerald-600/30 to-teal-700/40",
+    borderGlow: "shadow-green-500/20",
+    iconBg: "bg-green-500/20",
+    iconGlow: "shadow-lg shadow-green-500/30",
+    accentColor: "text-green-300",
+    hoverGlow: "hover:shadow-green-500/30"
+  },
             {
               label: "Size",
               value: animal.size,
@@ -185,17 +185,17 @@ export default function AnimalDetails() {
               accentColor: "text-amber-300",
               hoverGlow: "hover:shadow-amber-500/30"
             },
-            {
-              label: "Habitat",
-              value: animal.habitat,
-              icon: MapPin,
-              gradient: "from-sky-500/20 via-blue-600/30 to-cyan-700/40",
-              borderGlow: "shadow-sky-500/20",
-              iconBg: "bg-sky-500/20",
-              iconGlow: "shadow-lg shadow-sky-500/30",
-              accentColor: "text-sky-300",
-              hoverGlow: "hover:shadow-sky-500/30"
-            },
+             {
+    label: "Predators",
+    value: animal.predators,
+     icon: () => <span className="text-3xl">🦁</span>,
+    gradient: "from-red-500/20 via-pink-600/30 to-rose-700/40",
+    borderGlow: "shadow-red-500/20",
+    iconBg: "bg-red-500/20",
+    iconGlow: "shadow-lg shadow-red-500/30",
+    accentColor: "text-red-300",
+    hoverGlow: "hover:shadow-red-500/30"
+  },
             {
               label: "Family",
               value: animal.family,

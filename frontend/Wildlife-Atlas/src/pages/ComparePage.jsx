@@ -10,9 +10,8 @@ export default function ComparePage() {
   const [selected, setSelected] = useState([]);
   const [allAnimals, setAllAnimals] = useState([]);
   const [search, setSearch] = useState("");
-  const [habitat, setHabitat] = useState("all"); // now used for chips
+  const [habitat, setHabitat] = useState("all");
 
-  // Load animals + compare list
   useEffect(() => {
     fetch(`${API}/api/animals`)
       .then((res) => res.json())
@@ -43,20 +42,15 @@ export default function ComparePage() {
     setSearch("");
   };
 
-  // Attributes shown in table
   const attributes = [
     { key: "family", label: "Family", icon: "🧬" },
     { key: "habitat", label: "Habitat", icon: "🌍" },
     { key: "lifespan", label: "Lifespan", icon: "⏳" },
     { key: "diet", label: "Diet", icon: "🍖" },
-    { key: "origin", label: "Origin", icon: "📍" },
-    { key: "sound", label: "Sound", icon: "🔊" },
     { key: "prey", label: "Prey", icon: "🎯" },
     { key: "predators", label: "Predators", icon: "⚠️" },
-    { key: "summary", label: "Summary", icon: "📝" },
   ];
 
-  // Apply search + habitat filter
   const filteredAnimals = allAnimals.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase());
     const matchesHabitat = habitat === "all" ? true : a.habitat?.toLowerCase() === habitat;
@@ -102,14 +96,13 @@ export default function ComparePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 🔍 Add Animal Section */}
+        {/* Add Animal */}
         <div className="mb-8 bg-slate-900/60 p-4 rounded-xl border border-slate-800 shadow-lg">
           <h2 className="text-xl font-semibold text-slate-200 mb-3 flex items-center gap-2">
             <PlusCircle size={20} className="text-cyan-400" />
             Add an Animal to Compare
           </h2>
 
-          {/* Search input */}
           <Input
             placeholder="Search animals..."
             value={search}
@@ -117,7 +110,7 @@ export default function ComparePage() {
             className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 mb-3"
           />
 
-          {/* Habitat filter chips */}
+          {/* Habitat chips */}
           <div className="flex flex-wrap gap-2 mb-4">
             {[
               { value: "all", label: "All" },
@@ -139,7 +132,6 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* Filtered animal results */}
           {search && (
             <div className="mt-3 max-h-60 overflow-y-auto space-y-2">
               {filteredAnimals.length > 0 ? (
@@ -175,10 +167,10 @@ export default function ComparePage() {
           )}
         </div>
 
-        {/* 🐾 Comparison Content (unchanged from your last version) */}
+        {/* Comparison Content */}
         {selected.length > 0 ? (
           <div className="space-y-6">
-            {/* Selected Animal Cards */}
+            {/* Animal Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {selected.map((animal) => (
                 <div
@@ -206,7 +198,7 @@ export default function ComparePage() {
               ))}
             </div>
 
-            {/* Comparison Table */}
+            {/* Table */}
             <div className="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-sm">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -229,15 +221,26 @@ export default function ComparePage() {
                             key={animal._id}
                             className="p-4 sm:p-6 text-slate-200 text-sm sm:text-base min-w-[200px]"
                           >
-                            {attr.key === "summary" ? (
+                            {/* Special render for prey & predators */}
+                            {["prey", "predators"].includes(attr.key) ? (
+                              animal[attr.key] ? (
+                                <ul className="list-disc list-inside text-slate-300">
+                                  {animal[attr.key]
+                                    .split(",")
+                                    .map((item, i) => (
+                                      <li key={i}>{item.trim()}</li>
+                                    ))}
+                                </ul>
+                              ) : (
+                                <span className="text-slate-600">-</span>
+                              )
+                            ) : attr.key === "summary" ? (
                               <div className="text-slate-300 leading-relaxed">
                                 {animal[attr.key] || "-"}
                               </div>
                             ) : (
                               <div className="font-medium">
-                                {animal[attr.key] || (
-                                  <span className="text-slate-600">-</span>
-                                )}
+                                {animal[attr.key] || <span className="text-slate-600">-</span>}
                               </div>
                             )}
                           </td>
