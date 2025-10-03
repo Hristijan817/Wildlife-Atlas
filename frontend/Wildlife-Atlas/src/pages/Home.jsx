@@ -85,10 +85,8 @@ export default function Home() {
 
           <AnimateIn delay={0.2} from="bottom" distance={40}>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-8 text-gray-200 leading-relaxed">
-              Интерактивно истражување на светот на животните преку{' '}
-              <span className="text-green-300 font-semibold">3D модели</span>,{' '}
-              <span className="text-blue-300 font-semibold">квизови</span> и{' '}
-              <span className="text-purple-300 font-semibold">виртуелни патувања</span>.
+              Интерактивно истражување на светот на животните {' '}
+              
             </p>
           </AnimateIn>
         </div>
@@ -327,80 +325,67 @@ export default function Home() {
       </section>
 
       {/* ENHANCED TOOLS SECTION */}
-      <section className="py-20 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <AnimateIn from="bottom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                Интерактивни Алатки
-              </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Забавувај се додека учиш со нашите иновативни функции
-              </p>
-            </div>
-          </AnimateIn>
+<section className="py-20 bg-white relative overflow-hidden">
+  <div className="max-w-7xl mx-auto px-6">
+    <AnimateIn from="bottom">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+          Интерактивни Алатки
+        </h2>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Забавувај се додека учиш со нашите иновативни функции
+        </p>
+      </div>
+    </AnimateIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                title: "Филтрирај Животни",
-                path: "/filter",
-                icon: <Filter className="w-6 h-6" />,
-                desc: "Најди животни според различни критериуми",
-                gradient: "from-green-500 to-emerald-500"
-              },
-              {
-                title: "Животно на Денот",
-                path: "/random",
-                icon: <RefreshCcw className="w-6 h-6" />,
-                desc: "Случајно избрано животно секој ден",
-                gradient: "from-blue-500 to-cyan-500"
-              },
-              {
-                title: "Забавни Квизови",
-                path: "/quiz",
-                icon: <HelpCircle className="w-6 h-6" />,
-                desc: "Тестирај го твоето знаење",
-                gradient: "from-purple-500 to-pink-500"
-              },
-              {
-                title: "Спореди Животни",
-                path: "/compare",
-                icon: <Scale3D className="w-6 h-6" />,
-                desc: "Види ги разликите помеѓу видови",
-                gradient: "from-orange-500 to-red-500"
-              },
-            ].map((tool, i) => (
-              <AnimateIn key={i} delay={i * 0.1} from="bottom" distance={40}>
-                <motion.div whileHover={{ scale: 1.05 }} className="h-full">
-                  <Card
-                    onClick={() => navigate(tool.path)}
-                    className="h-full bg-white border-0 shadow-lg hover:shadow-2xl cursor-pointer group transition-all duration-300 overflow-hidden"
-                  >
-                    <CardContent className="p-6 flex flex-col h-full">
-                      <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${tool.gradient} text-white mb-4 w-fit`}>
-                        {tool.icon}
-                      </div>
-                      <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-gray-900">
-                        {tool.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm flex-grow">
-                        {tool.desc}
-                      </p>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                        <span className="text-xs text-gray-500 group-hover:text-gray-600">
-                          Отвори
-                        </span>
-                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transform group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </AnimateIn>
-            ))}
-          </div>
-        </div>
-      </section>
+    {/* Center the two cards */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center max-w-3xl mx-auto">
+      {[
+        {
+          title: "Забавни Квизови",
+          path: "/quiz",
+          icon: <HelpCircle className="w-6 h-6" />,
+          desc: "Тестирај го твоето знаење",
+          gradient: "from-purple-500 to-pink-500"
+        },
+        {
+          title: "Спореди Животни",
+          path: "/compare",
+          icon: <Scale3D className="w-6 h-6" />,
+          desc: "Види ги разликите помеѓу видови",
+          gradient: "from-orange-500 to-red-500"
+        },
+      ].map((tool, i) => (
+        <AnimateIn key={i} delay={i * 0.1} from="bottom" distance={40}>
+          <motion.div whileHover={{ scale: 1.05 }} className="h-full">
+            <Card
+              onClick={() => navigate(tool.path)}
+              className="h-full bg-white border-0 shadow-lg hover:shadow-2xl cursor-pointer group transition-all duration-300 overflow-hidden"
+            >
+              <CardContent className="p-6 flex flex-col h-full">
+                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${tool.gradient} text-white mb-4 w-fit`}>
+                  {tool.icon}
+                </div>
+                <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-gray-900">
+                  {tool.title}
+                </h3>
+                <p className="text-gray-600 text-sm flex-grow">
+                  {tool.desc}
+                </p>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500 group-hover:text-gray-600">
+                    Отвори
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimateIn>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* INSPIRATIONAL QUOTE */}
       <section className="relative py-32 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 text-white overflow-hidden">
@@ -487,10 +472,7 @@ export default function Home() {
           <AnimateIn from="bottom" delay={0.3}>
             <div className="pt-8 border-t border-gray-800">
               <p className="text-gray-400 text-sm">
-                © 2025 Развиено со ❤️ од Христијан Јанкуловски • MERN Stack Дипломска Работа
-              </p>
-              <p className="text-gray-500 text-xs mt-2">
-                Посветено на зачувување и едукација за убавината на природата
+                 Христијан Јанкуловски • MERN Stack Дипломска Работа
               </p>
             </div>
           </AnimateIn>

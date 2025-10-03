@@ -612,8 +612,10 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Family</label>
                     <Input name="family" value={form.family} onChange={onChange} placeholder="Family" className="h-12 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/40 backdrop-blur-sm" />
-                    
+                    </div>
                     {/* Lifespan Range Selector */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">Lifespan Range</label>

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Trophy, RotateCcw, Lightbulb, Target, TrendingUp, Award, X } from "lucide-react";
+import { Trophy, RotateCcw, Lightbulb, Target, TrendingUp, Award, X, ChevronUp, ChevronDown, Flame, Zap, Clock, Share2, BookOpen, Play, Pause } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -47,6 +47,102 @@ function CustomConfetti({ active }) {
   );
 }
 
+// Toast Notification Component
+function Toast({ message, type = "info", onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const bgColor = type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -50 }}
+      className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3`}
+    >
+      <span>{message}</span>
+      <button onClick={onClose} className="hover:opacity-70">
+        <X className="w-4 h-4" />
+      </button>
+    </motion.div>
+  );
+}
+
+// Info Modal Component
+function InfoModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 max-w-2xl w-full border border-slate-700 shadow-2xl"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">How to Play</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-4 text-slate-300">
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">🎯 Objective</h3>
+            <p>Guess the mystery animal by comparing characteristics!</p>
+          </div>
+          
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">🎮 Gameplay</h3>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Type an animal name and select it from the dropdown</li>
+              <li>Compare the attributes with the mystery animal</li>
+              <li><span className="bg-green-600 px-2 py-1 rounded">Green</span> means exact match</li>
+              <li><span className="bg-amber-600 px-2 py-1 rounded">Orange with arrows</span> means close (higher/lower)</li>
+              <li><span className="bg-slate-700 px-2 py-1 rounded">Gray</span> means no match</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">💡 Hints</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>After 3 wrong guesses: Habitat revealed</li>
+              <li>After 5 wrong guesses: First letter revealed</li>
+              <li>After 7 wrong guesses: Family revealed</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">🏆 Achievements</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Perfect: Guess on first try</li>
+              <li>Amazing: Under 3 guesses</li>
+              <li>Build streaks for special rewards!</li>
+            </ul>
+          </div>
+        </div>
+
+        <Button
+          onClick={onClose}
+          className="w-full mt-6 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 py-6 text-lg font-semibold"
+        >
+          Got it!
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function QuizPage() {
   const [allAnimals, setAllAnimals] = useState([]);
   const [target, setTarget] = useState(null);
@@ -59,6 +155,12 @@ export default function QuizPage() {
   const [gamesWon, setGamesWon] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [toast, setToast] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [gameTime, setGameTime] = useState(0);
+  const [isPaused, setIsPaused] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
   const inputRef = useRef(null);
 
   // Habitat label mapping
@@ -68,19 +170,54 @@ export default function QuizPage() {
     vozduh: 'Vozduh'
   };
 
+  // Timer for game duration
+  useEffect(() => {
+    if (startTime && !winner && !isPaused) {
+      const interval = setInterval(() => {
+        setGameTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [startTime, winner, isPaused]);
+
   // Load animals once
   useEffect(() => {
     fetch(`${API}/api/animals`)
       .then((res) => res.json())
       .then((data) => {
         setAllAnimals(data);
-        setTarget(data[Math.floor(Math.random() * data.length)]);
+        const randomAnimal = data[Math.floor(Math.random() * data.length)];
+        setTarget(randomAnimal);
       })
       .catch((err) => console.error("Error loading animals:", err));
   }, []);
 
+  const startGame = () => {
+    setGameStarted(true);
+    setIsPaused(false);
+    setStartTime(Date.now() - (gameTime * 1000));
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const togglePause = () => {
+    if (isPaused) {
+      setStartTime(Date.now() - (gameTime * 1000));
+      setIsPaused(false);
+    } else {
+      setIsPaused(true);
+    }
+  };
+
   const handleGuess = (animal) => {
-    if (!target || guesses.find((g) => g._id === animal._id)) return;
+    if (!gameStarted) {
+      setToast({ message: "Click START to begin the game!", type: "error" });
+      return;
+    }
+    
+    if (!target || guesses.find((g) => g._id === animal._id)) {
+      setToast({ message: "You already guessed this animal!", type: "error" });
+      return;
+    }
 
     const newGuesses = [...guesses, animal];
     setGuesses(newGuesses);
@@ -106,6 +243,19 @@ export default function QuizPage() {
         setCurrentStreak(newStreak);
         setBestStreak(newBest);
         
+        // Achievement toasts
+        if (newGuesses.length === 1) {
+          setTimeout(() => setToast({ message: "🎯 PERFECT! First try!", type: "success" }), 1000);
+        } else if (newGuesses.length <= 3) {
+          setTimeout(() => setToast({ message: "🌟 Amazing! Under 3 guesses!", type: "success" }), 1000);
+        }
+        
+        if (newStreak === 5) {
+          setTimeout(() => setToast({ message: "🔥 5 WIN STREAK!", type: "success" }), 1500);
+        } else if (newStreak === 10) {
+          setTimeout(() => setToast({ message: "⚡ 10 WIN STREAK! INCREDIBLE!", type: "success" }), 1500);
+        }
+        
         setTimeout(() => setShowConfetti(false), 4000);
       }, 500);
     } else {
@@ -114,10 +264,13 @@ export default function QuizPage() {
 
       if (wrongGuesses === 3 && !hints.includes("habitat")) {
         setHints([...hints, "habitat"]);
+        setToast({ message: "💡 Hint unlocked: Habitat revealed!", type: "info" });
       } else if (wrongGuesses === 5 && !hints.includes("firstLetter")) {
         setHints([...hints, "firstLetter"]);
+        setToast({ message: "💡 Hint unlocked: First letter revealed!", type: "info" });
       } else if (wrongGuesses === 7 && !hints.includes("family")) {
         setHints([...hints, "family"]);
+        setToast({ message: "💡 Hint unlocked: Family revealed!", type: "info" });
       }
     }
   };
@@ -125,20 +278,49 @@ export default function QuizPage() {
   const checkMatch = (guessValue, targetValue) => {
     if (!guessValue || !targetValue) return "text-slate-400";
     return guessValue.toLowerCase() === targetValue.toLowerCase()
-      ? "bg-green-700/60 text-green-300 font-bold"
-      : "bg-red-800/40 text-red-300";
+      ? "bg-green-600/80 text-white font-bold"
+      : "bg-slate-700/60 text-slate-200";
+  };
+
+  const compareNumeric = (guessValue, targetValue) => {
+    if (!guessValue || !targetValue) return { match: "none", arrow: null };
+    
+    const guessNum = parseInt(guessValue);
+    const targetNum = parseInt(targetValue);
+    
+    if (isNaN(guessNum) || isNaN(targetNum)) {
+      return { 
+        match: guessValue.toLowerCase() === targetValue.toLowerCase() ? "exact" : "none",
+        arrow: null 
+      };
+    }
+    
+    if (guessNum === targetNum) return { match: "exact", arrow: null };
+    if (guessNum < targetNum) return { match: "close", arrow: "up" };
+    return { match: "close", arrow: "down" };
+  };
+
+  const getNumericClassName = (comparison) => {
+    if (comparison.match === "exact") return "bg-green-600/80 text-white font-bold";
+    if (comparison.match === "close") return "bg-amber-600/60 text-white font-semibold";
+    return "bg-slate-700/60 text-slate-200";
   };
 
   const filtered = allAnimals.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase())
+    a.name.toLowerCase().includes(search.toLowerCase()) &&
+    !guesses.find((g) => g._id === a._id)
   );
 
   const resetGame = () => {
     setGuesses([]);
     setWinner(false);
     setHints([]);
+    setGameTime(0);
+    setIsPaused(true);
+    setGameStarted(false);
     setTarget(allAnimals[Math.floor(Math.random() * allAnimals.length)]);
     setSearch("");
+    setStartTime(null);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -150,7 +332,25 @@ export default function QuizPage() {
       const newGamesPlayed = gamesPlayed + 1;
       setGamesPlayed(newGamesPlayed);
       setCurrentStreak(0);
+      setToast({ message: "Better luck next time!", type: "info" });
     }
+  };
+
+  const shareResults = () => {
+    const resultsText = `🐾 Animal Quiz Game 🐾\n${winner && guesses[guesses.length - 1]?._id === target._id ? '✅' : '❌'} ${guesses.length} guesses | ${hints.length} hints | ${gameTime}s\nStreak: ${currentStreak} 🔥`;
+    
+    if (navigator.share) {
+      navigator.share({ text: resultsText });
+    } else {
+      navigator.clipboard.writeText(resultsText);
+      setToast({ message: "Results copied to clipboard!", type: "success" });
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
@@ -165,6 +365,24 @@ export default function QuizPage() {
 
       <CustomConfetti active={showConfetti} />
 
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Info Modal */}
+      <AnimatePresence>
+        {showInfoModal && (
+          <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />
+        )}
+      </AnimatePresence>
+
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Header with Stats */}
         <motion.div
@@ -174,31 +392,93 @@ export default function QuizPage() {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
             <div className="text-center sm:text-left">
-              <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                Guess the Animal
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  Guess the Animal
+                </h1>
+                <Button
+                  onClick={() => setShowInfoModal(true)}
+                  variant="ghost"
+                  size="icon"
+                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  <BookOpen className="w-5 h-5" />
+                </Button>
+              </div>
               <p className="text-slate-400">Can you identify the mystery animal?</p>
             </div>
 
             {/* Stats Cards */}
             <div className="flex gap-3">
-              <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-cyan-400">{gamesPlayed}</div>
                 <div className="text-xs text-slate-400">Played</div>
-              </div>
-              <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center">
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-emerald-400">{winRate}%</div>
                 <div className="text-xs text-slate-400">Win Rate</div>
-              </div>
-              <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center">
-                <div className="text-2xl font-bold text-amber-400">{currentStreak}</div>
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer relative"
+              >
+                <div className="text-2xl font-bold text-amber-400 flex items-center gap-1 justify-center">
+                  {currentStreak}
+                  {currentStreak > 0 && <Flame className="w-4 h-4" />}
+                </div>
                 <div className="text-xs text-slate-400">Streak</div>
-              </div>
-              <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center">
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2 text-center cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-purple-400">{bestStreak}</div>
                 <div className="text-xs text-slate-400">Best</div>
-              </div>
+              </motion.div>
             </div>
+          </div>
+
+          {/* Game Timer */}
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="flex items-center gap-2 bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-xl px-4 py-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-mono">{formatTime(gameTime)}</span>
+            </div>
+            
+            {!gameStarted ? (
+              <Button
+                onClick={startGame}
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 py-2 rounded-xl font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+              >
+                <Play className="w-4 h-4" />
+                START GAME
+              </Button>
+            ) : (
+              <Button
+                onClick={togglePause}
+                variant="ghost"
+                className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 text-white px-6 py-2 rounded-xl font-semibold transition-all flex items-center gap-2"
+                disabled={winner}
+              >
+                {isPaused ? (
+                  <>
+                    <Play className="w-4 h-4" />
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4" />
+                    Pause
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </motion.div>
 
@@ -215,7 +495,7 @@ export default function QuizPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-slate-800/80 backdrop-blur-sm border-slate-700 text-white text-lg py-6 pl-6 pr-32 rounded-2xl focus:ring-2 focus:ring-cyan-500/50 transition-all"
-              disabled={winner}
+              disabled={winner || !gameStarted || isPaused}
               autoFocus
             />
             {!winner && guesses.length > 0 && (
@@ -231,7 +511,7 @@ export default function QuizPage() {
 
           {/* Dropdown */}
           <AnimatePresence>
-            {search && !winner && (
+            {search && !winner && gameStarted && !isPaused && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -374,68 +654,103 @@ export default function QuizPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="overflow-x-auto rounded-2xl border border-slate-700 shadow-2xl"
+              className="overflow-x-auto rounded-2xl border border-slate-700 shadow-2xl mb-8"
             >
-              <table className="w-full bg-slate-900/50 backdrop-blur-sm">
-                <thead className="bg-slate-800/80 text-slate-300">
-                  <tr>
-                    <th className="p-4 text-left font-semibold">Animal</th>
-                    <th className="p-4 text-left font-semibold">Family</th>
-                    <th className="p-4 text-left font-semibold">Habitat</th>
-                    <th className="p-4 text-left font-semibold">Lifespan</th>
-                    <th className="p-4 text-left font-semibold">Diet</th>
-                    <th className="p-4 text-left font-semibold">Prey</th>
-                    <th className="p-4 text-left font-semibold">Predators</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <AnimatePresence mode="popLayout">
-                    {[...guesses].reverse().map((g, idx) => (
-                      <motion.tr
-                        key={g._id}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors"
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={
-                                g.cardImage?.startsWith("http")
-                                  ? g.cardImage
-                                  : `${API}${g.cardImage}`
-                              }
-                              alt={g.name}
-                              className="w-12 h-12 rounded-lg border border-slate-600 object-cover"
-                            />
-                            <span className="font-medium">{g.name}</span>
-                          </div>
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.family, target?.family)}`}>
-                          {g.family || "—"}
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.habitat, target?.habitat)}`}>
-                          {habitatLabels[g.habitat] || g.habitat || "—"}
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.lifespan, target?.lifespan)}`}>
-                          {g.lifespan || "—"}
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.diet, target?.diet)}`}>
-                          {g.diet || "—"}
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.prey, target?.prey)}`}>
-                          {g.prey || "—"}
-                        </td>
-                        <td className={`p-4 rounded-lg ${checkMatch(g.predators, target?.predators)}`}>
-                          {g.predators || "—"}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+              <div className="min-w-max">
+                <table className="w-full bg-slate-900/50 backdrop-blur-sm">
+                  <thead className="bg-slate-800/80">
+                    <tr>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Animal</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Family</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Habitat</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Lifespan</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Diet</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Prey</th>
+                      <th className="p-3 text-center font-semibold text-slate-300 text-sm uppercase tracking-wider">Predators</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <AnimatePresence mode="popLayout">
+                      {[...guesses].reverse().map((g, idx) => {
+                        const lifespanComparison = compareNumeric(g.lifespan, target?.lifespan);
+                        
+                        return (
+                          <motion.tr
+                            key={g._id}
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -100 }}
+                            transition={{ duration: 0.3, delay: idx * 0.05 }}
+                            className="border-t border-slate-800"
+                          >
+                            <td className="p-2">
+                              <motion.div 
+                                className="flex flex-col items-center gap-2 bg-slate-800/60 rounded-xl p-3 min-w-[120px]"
+                                whileHover={{ scale: 1.02 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                              >
+                                <img
+                                  src={
+                                    g.cardImage?.startsWith("http")
+                                      ? g.cardImage
+                                      : `${API}${g.cardImage}`
+                                  }
+                                  alt={g.name}
+                                  className="w-16 h-16 rounded-lg border-2 border-slate-600 object-cover shadow-lg"
+                                />
+                                <span className="font-semibold text-sm text-center">{g.name}</span>
+                              </motion.div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[100px] transition-all ${checkMatch(g.family, target?.family)}`}>
+                                <div className="font-medium text-sm break-words">{g.family || "—"}</div>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[100px] transition-all ${checkMatch(g.habitat, target?.habitat)}`}>
+                                <div className="font-medium text-sm break-words">{habitatLabels[g.habitat] || g.habitat || "—"}</div>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[100px] transition-all relative ${getNumericClassName(lifespanComparison)}`}>
+                                <div className="font-medium text-sm break-words">{g.lifespan || "—"}</div>
+                                {lifespanComparison.arrow && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: lifespanComparison.arrow === "up" ? 10 : -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="absolute inset-0 flex items-center justify-center"
+                                  >
+                                    {lifespanComparison.arrow === "up" ? (
+                                      <ChevronUp className="w-8 h-8 absolute right-2 top-1/2 -translate-y-1/2" />
+                                    ) : (
+                                      <ChevronDown className="w-8 h-8 absolute right-2 top-1/2 -translate-y-1/2" />
+                                    )}
+                                  </motion.div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[100px] transition-all ${checkMatch(g.diet, target?.diet)}`}>
+                                <div className="font-medium text-sm break-words">{g.diet || "—"}</div>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[120px] max-w-[200px] transition-all ${checkMatch(g.prey, target?.prey)}`}>
+                                <div className="font-medium text-xs break-words whitespace-normal leading-relaxed">{g.prey || "—"}</div>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className={`rounded-xl p-4 text-center min-w-[120px] max-w-[200px] transition-all ${checkMatch(g.predators, target?.predators)}`}>
+                                <div className="font-medium text-xs break-words whitespace-normal leading-relaxed">{g.predators || "—"}</div>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -485,7 +800,7 @@ export default function QuizPage() {
                 </p>
 
                 {guesses[guesses.length - 1]?._id === target._id && (
-                  <div className="flex gap-4 justify-center mb-6 text-sm">
+                  <div className="flex gap-4 justify-center mb-6 text-sm flex-wrap">
                     <div className="bg-slate-800/50 px-4 py-2 rounded-lg">
                       <div className="text-emerald-400 font-bold">{guesses.length}</div>
                       <div className="text-slate-400">Guesses</div>
@@ -494,16 +809,29 @@ export default function QuizPage() {
                       <div className="text-cyan-400 font-bold">{hints.length}</div>
                       <div className="text-slate-400">Hints Used</div>
                     </div>
+                    <div className="bg-slate-800/50 px-4 py-2 rounded-lg">
+                      <div className="text-purple-400 font-bold">{formatTime(gameTime)}</div>
+                      <div className="text-slate-400">Time</div>
+                    </div>
                   </div>
                 )}
 
-                <Button
-                  onClick={resetGame}
-                  className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-8 py-6 rounded-xl text-lg font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 flex items-center gap-2 mx-auto"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                  Play Again
-                </Button>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    onClick={shareResults}
+                    className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-6 rounded-xl font-semibold shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Share
+                  </Button>
+                  <Button
+                    onClick={resetGame}
+                    className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-8 py-6 rounded-xl font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-5 h-5" />
+                    Play Again
+                  </Button>
+                </div>
               </motion.div>
             </motion.div>
           )}
