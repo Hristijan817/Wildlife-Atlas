@@ -18,7 +18,7 @@ export default function ComparePage() {
       .then((data) => {
         setAllAnimals(Array.isArray(data) ? data : []);
       })
-      .catch((err) => console.error("Error fetching animals:", err));
+      .catch((err) => console.error("Грешка при вчитување на животни:", err));
 
     const stored = JSON.parse(localStorage.getItem("compareList")) || [];
     setSelected(stored);
@@ -35,7 +35,7 @@ export default function ComparePage() {
   const addAnimal = (animal) => {
     if (selected.some((a) => a._id === animal._id)) return;
     if (selected.length >= 3) {
-      alert("You can compare up to 3 animals only!");
+      alert("Можете да споредите до 3 животни!");
       return;
     }
     saveSelected([...selected, animal]);
@@ -43,12 +43,12 @@ export default function ComparePage() {
   };
 
   const attributes = [
-    { key: "family", label: "Family", icon: "🧬" },
-    { key: "habitat", label: "Habitat", icon: "🌍" },
-    { key: "lifespan", label: "Lifespan", icon: "⏳" },
-    { key: "diet", label: "Diet", icon: "🍖" },
-    { key: "prey", label: "Prey", icon: "🎯" },
-    { key: "predators", label: "Predators", icon: "⚠️" },
+    { key: "family", label: "Семејство", icon: "🧬" },
+    { key: "habitat", label: "Живеалиште", icon: "🌍" },
+    { key: "lifespan", label: "Животен век", icon: "⏳" },
+    { key: "diet", label: "Исхрана", icon: "🍖" },
+    { key: "prey", label: "Плен", icon: "🎯" },
+    { key: "predators", label: "Предатори", icon: "⚠️" },
   ];
 
   const filteredAnimals = allAnimals.filter((a) => {
@@ -70,14 +70,14 @@ export default function ComparePage() {
                 className="text-slate-300 hover:text-white hover:bg-slate-800"
               >
                 <ArrowLeft className="mr-2" size={18} />
-                Back
+                Назад
               </Button>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Compare Animals
+                  Спореди Животни
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
-                  {selected.length} {selected.length === 1 ? "animal" : "animals"} selected
+                  {selected.length} {selected.length === 1 ? "животно" : "животни"} избрани
                 </p>
               </div>
             </div>
@@ -88,7 +88,7 @@ export default function ComparePage() {
                 className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-900/30"
               >
                 <Trash2 className="mr-2" size={16} />
-                Clear All
+                Избриши се
               </Button>
             )}
           </div>
@@ -100,11 +100,11 @@ export default function ComparePage() {
         <div className="mb-8 bg-slate-900/60 p-4 rounded-xl border border-slate-800 shadow-lg">
           <h2 className="text-xl font-semibold text-slate-200 mb-3 flex items-center gap-2">
             <PlusCircle size={20} className="text-cyan-400" />
-            Add an Animal to Compare
+            Додади животно за споредба
           </h2>
 
           <Input
-            placeholder="Search animals..."
+            placeholder="Пребарај животни..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 mb-3"
@@ -113,10 +113,10 @@ export default function ComparePage() {
           {/* Habitat chips */}
           <div className="flex flex-wrap gap-2 mb-4">
             {[
-              { value: "all", label: "All" },
-              { value: "kopno", label: "Копно (Land)" },
-              { value: "voda", label: "Вода (Water)" },
-              { value: "vozduh", label: "Воздух (Air)" },
+              { value: "all", label: "Сите" },
+              { value: "kopno", label: "Копно" },
+              { value: "voda", label: "Вода" },
+              { value: "vozduh", label: "Воздух" },
             ].map((h) => (
               <button
                 key={h.value}
@@ -161,7 +161,7 @@ export default function ComparePage() {
                   );
                 })
               ) : (
-                <p className="text-slate-500 text-sm">No animals found.</p>
+                <p className="text-slate-500 text-sm">Не се најдени животни.</p>
               )}
             </div>
           )}
@@ -256,8 +256,8 @@ export default function ComparePage() {
             <div className="bg-blue-900/20 border border-blue-800/30 rounded-xl p-4 flex items-start gap-3">
               <Info className="text-blue-400 mt-0.5 flex-shrink-0" size={20} />
               <p className="text-slate-300 text-sm">
-                Use the search and habitat chips above to add animals directly. 
-                Click the <XCircle className="inline" size={16} /> button on any animal card to remove it.
+                Користи го пребарувањето и филтрите за живеалишта погоре за да додадеш животни директно. 
+                Кликни на <XCircle className="inline" size={16} /> копчето на било која картичка за да ја отстраниш.
               </p>
             </div>
           </div>
@@ -266,22 +266,22 @@ export default function ComparePage() {
             <div className="bg-slate-800/50 rounded-full p-8 mb-6 border-4 border-slate-700/50">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/616/616408.png"
-                alt="No selection"
+                alt="Нема избор"
                 className="w-24 h-24 opacity-60"
               />
             </div>
             <h2 className="text-2xl font-bold text-slate-200 mb-3">
-              No Animals to Compare
+              Нема животни за споредба
             </h2>
             <p className="text-slate-400 mb-6 max-w-md">
-              Start by adding animals using the search & habitat chips above or by exploring habitat pages.
+              Започни со додавање на животни користејќи го пребарувањето и филтрите погоре или со истражување на живеалиштата.
             </p>
             <Button
               onClick={() => (window.location.href = "/")}
               className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg shadow-cyan-900/30 px-8 py-6 text-lg"
             >
               <ArrowLeft className="mr-2" size={20} />
-              Explore Habitats
+              Истражи живеалишта
             </Button>
           </div>
         )}
