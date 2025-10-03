@@ -45,7 +45,6 @@ export default function AnimalCard({ animal, index = 0 }) {
   const handleCompare = () => {
     let stored = JSON.parse(localStorage.getItem("compareList")) || [];
     if (stored.some((a) => a._id === animal._id)) {
-      // Remove if already in compare list
       stored = stored.filter((a) => a._id !== animal._id);
     } else {
       if (stored.length >= 3) {
@@ -66,30 +65,15 @@ export default function AnimalCard({ animal, index = 0 }) {
       whileHover={{ y: -8 }}
       className="h-full"
     >
-      <Card className="overflow-hidden relative group h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500">
-        {/* Animated gradient border */}
+      <Card className="overflow-hidden relative group h-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500">
+        {/* Animated gradient border on hover */}
         <motion.div
-          className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${habitatConfig.color} opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-500`}
+          className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${habitatConfig.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
         />
 
-        {/* Floating habitat badge */}
-        <div className="absolute top-4 left-4 z-20">
-          <motion.div 
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${habitatConfig.bgColor} backdrop-blur-sm border border-gray-600/30`}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: index * 0.1 + 0.3 }}
-          >
-            <span className="text-sm">{habitatConfig.icon}</span>
-            <span className={`text-xs font-medium ${habitatConfig.textColor} uppercase tracking-wider`}>
-              {animal.habitat}
-            </span>
-          </motion.div>
-        </div>
-
         <div className="relative h-full flex flex-col">
-          {/* Image Section */}
-          <div className="relative overflow-hidden h-48">
+          {/* Image Section - Takes most of the space */}
+          <div className="relative overflow-hidden h-80">
             <motion.img
               src={imgSrc}
               alt={animal.name}
@@ -98,80 +82,65 @@ export default function AnimalCard({ animal, index = 0 }) {
                 if (e.currentTarget.src !== PLACEHOLDER)
                   e.currentTarget.src = PLACEHOLDER;
               }}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.08 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-60" />
-          </div>
-
-          {/* Content Section */}
-          <CardContent className="flex-1 flex flex-col p-6 space-y-4">
-            {/* Title */}
-            <motion.h2
-              className="text-2xl font-bold text-gray-100 group-hover:text-white transition-colors duration-300 leading-tight"
-              initial={{ opacity: 0.8 }}
-              whileHover={{ opacity: 1 }}
-            >
-              {animal.name}
-            </motion.h2>
-
-            {/* Summary */}
-            <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 flex-1">
-              {animal.summary || "Без опис."}
-            </p>
-
-            {/* Metadata Tags */}
-            <div className="flex flex-wrap gap-2">
-              {animal.type && (
-                <span className="px-3 py-1 bg-gray-700/50 text-gray-300 text-xs rounded-full border border-gray-600/30">
-                  {animal.type}
-                </span>
-              )}
-              {animal.size && (
-                <span className="px-3 py-1 bg-gray-700/50 text-gray-300 text-xs rounded-full border border-gray-600/30">
-                  {animal.size}
-                </span>
-              )}
+            {/* Strong gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+            
+            {/* Name overlay on image */}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <motion.h2
+                className="text-3xl font-bold text-white drop-shadow-2xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 + 0.2 }}
+              >
+                {animal.name}
+              </motion.h2>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-4 flex gap-3">
+            {/* Subtle habitat indicator */}
+            <div className="absolute top-4 right-4">
+              <motion.div 
+                className={`w-10 h-10 rounded-full ${habitatConfig.bgColor} backdrop-blur-md border border-gray-600/30 flex items-center justify-center`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
+                whileHover={{ scale: 1.1 }}
+              >
+                <span className="text-lg">{habitatConfig.icon}</span>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Compact Action Buttons */}
+          <CardContent className="p-4">
+            <div className="flex gap-3">
               <Link to={`/animals/${animal._id}`} className="flex-1">
                 <Button
                   className={`w-full bg-gradient-to-r ${habitatConfig.color} text-white font-semibold rounded-xl py-3 
-                             hover:opacity-90 hover:shadow-lg transition-all duration-300 
-                             group-hover:shadow-2xl group-hover:scale-[1.02]`}
+                             hover:opacity-90 hover:shadow-lg transition-all duration-300`}
                 >
                   <motion.span
                     className="flex items-center justify-center gap-2"
-                    whileHover={{ x: 5 }}
+                    whileHover={{ x: 3 }}
                     transition={{ duration: 0.2 }}
                   >
                     Детали
-                    <motion.div
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      →
-                    </motion.div>
+                    <span className="text-sm">→</span>
                   </motion.span>
                 </Button>
               </Link>
               <Button
                 variant="outline"
-                className="flex-1 border-cyan-400 text-cyan-300 hover:bg-cyan-600/20 rounded-xl"
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500 rounded-xl py-3 font-semibold transition-all duration-300"
                 onClick={handleCompare}
               >
                 Спореди
               </Button>
             </div>
           </CardContent>
-        </div>
-
-        {/* Subtle corner decoration */}
-        <div className="absolute bottom-0 right-0 w-20 h-20 opacity-5">
-          <div className={`w-full h-full bg-gradient-to-tl ${habitatConfig.color} rounded-tl-full`} />
         </div>
       </Card>
     </motion.div>
